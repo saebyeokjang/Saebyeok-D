@@ -24,8 +24,6 @@ struct ContentView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding()
-
-                // 콘텐츠 영역: ZStack으로 전환 효과 적용
                 ZStack {
                     if selectedTab == .dday {
                         DDayListView()
