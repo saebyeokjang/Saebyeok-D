@@ -24,26 +24,25 @@ struct ContentView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding()
+
                 ZStack {
                     if selectedTab == .dday {
                         DDayListView()
-                            .transition(.move(edge: .trailing)) // 원하는 전환 효과 선택
+                            .transition(.move(edge: .trailing))
                     } else if selectedTab == .settings {
                         SettingsView()
                             .transition(.move(edge: .leading))
                     }
                 }
-                .animation(.easeInOut, value: selectedTab) // 전환 애니메이션 지정
+                .animation(nil, value: selectedTab) // 애니메이션 없이 전환
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .navigationTitle("새벽:D")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        // d-day 추가 액션 구현 (예: 모달 화면 띄우기)
-                    }, label: {
+                    NavigationLink(destination: AddDDayView()) {
                         Image(systemName: "plus")
-                    })
+                    }
                 }
             }
         }
