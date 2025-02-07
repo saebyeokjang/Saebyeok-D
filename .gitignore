@@ -21,3 +21,6 @@ xcuserdata/
 !*.xcworkspace/contents.xcworkspacedata
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
+# Xcode User Data
+*.xcuserdatad
+xcuserdata/
