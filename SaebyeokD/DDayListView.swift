@@ -15,7 +15,10 @@ struct DDayListView: View {
         List {
             ForEach(events) { event in
                 DDayRowView(event: event)
+                    .listRowBackground(Color.clear) // 리스트 행 배경 투명
             }
         }
+        .scrollContentBackground(.hidden) // 기본 배경 제거
+        .background(Color.clear) // 전체 뷰 배경 투명
     }
 }
