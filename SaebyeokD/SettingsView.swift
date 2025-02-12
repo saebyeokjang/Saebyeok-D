@@ -10,8 +10,9 @@ import SwiftUI
 struct SettingsView: View {
     var body: some View {
         VStack {
-            Text("설정 화면")
+            Text("준비중입니다...")
                 .font(.title)
+                .foregroundStyle(.white)
             // 설정
         }
         .padding()

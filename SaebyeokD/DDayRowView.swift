@@ -14,22 +14,29 @@ struct DDayRowView: View {
 
     var body: some View {
         HStack {
-            // 왼쪽: 제목과 날짜
+            // 왼쪽: 제목과 날짜 (왼쪽 정렬)
             VStack(alignment: .leading, spacing: 4) {
+                Spacer()
+
                 Text(event.title)
-                    .font(.headline)
+                    .font(.title2)
                     .foregroundColor(.white)
+                Spacer()
                 Text(formattedDate(from: event.targetDate))
                     .font(.footnote)
                     .foregroundColor(.gray)
+                Spacer()
+
             }
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
             // 오른쪽: D-day 텍스트
             Text(calculateDDayText(from: event.targetDate))
                 .font(.title3)
                 .foregroundColor(.white)
         }
-        .padding()
+        .frame(height: 80)
+        .padding(.horizontal)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color.black.opacity(0.3))
@@ -70,7 +77,7 @@ struct DDayRowView: View {
         } else if diff > 0 {
             return "D-\(diff)"
         } else {
-            return "D+\(-diff + 1)"
+            return "\(-diff + 1)일"
         }
     }
 }

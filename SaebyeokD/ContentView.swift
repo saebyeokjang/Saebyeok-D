@@ -11,27 +11,44 @@ import SwiftData
 struct ContentView: View {
     @State private var selectedTab: Tab = .dday
 
-    enum Tab: Hashable {
-        case dday, settings
+    enum Tab: String, CaseIterable {
+        case dday = "디데이"
+        case settings = "설정"
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                NightSkyBackground()  // 재사용 가능한 배경 적용
+                NightSkyBackground()
 
                 VStack(spacing: 16) {
-                    Picker("", selection: $selectedTab) {
-                        Text("디데이").tag(Tab.dday)
-                        Text("설정").tag(Tab.settings)
+                    // 커스텀 탭 컨트롤
+                    HStack {
+                        ForEach(Tab.allCases, id: \.self) { tab in
+                            Button {
+                                withAnimation {
+                                    selectedTab = tab
+                                }
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Text(tab.rawValue)
+                                        .foregroundColor(selectedTab == tab ? .white : .gray)
+                                    // 선택된 탭일 때만 흰색 밑줄 표시
+                                    Rectangle()
+                                        .fill(selectedTab == tab ? Color.white : Color.clear)
+                                        .frame(height: 2)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
                     }
-                    .pickerStyle(.segmented)
                     .padding(.horizontal)
                     .padding(.vertical, 4)
-                    .background(.ultraThinMaterial)
+                    .background(Color.clear) // 전체 탭 배경을 투명하게 설정
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     .padding(.top, 16)
 
+                    // 탭에 따른 내용 표시
                     ZStack {
                         if selectedTab == .dday {
                             DDayListView()
@@ -53,7 +70,6 @@ struct ContentView: View {
             .navigationTitle("새벽:D")
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
-                // 내비게이션 바 외관 설정 (타이틀 텍스트를 흰색으로)
                 let appearance = UINavigationBarAppearance()
                 appearance.configureWithOpaqueBackground()
                 appearance.backgroundColor = .clear
@@ -67,7 +83,7 @@ struct ContentView: View {
                     NavigationLink(destination: AddDDayView()) {
                         Image(systemName: "plus")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white) // 글씨(심볼) 색상을 흰색으로 설정
+                            .foregroundColor(.white)
                     }
                 }
             }
