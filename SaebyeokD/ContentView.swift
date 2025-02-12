@@ -67,7 +67,7 @@ struct ContentView: View {
                     .animation(nil, value: selectedTab)
                 }
             }
-            .navigationTitle("새벽:D")
+            .navigationTitle("새벽:D v0.02")
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 let appearance = UINavigationBarAppearance()
