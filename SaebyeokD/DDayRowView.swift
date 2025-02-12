@@ -13,46 +13,52 @@ struct DDayRowView: View {
     @Environment(\.modelContext) var modelContext  // 삭제를 위해 모델 컨텍스트 사용
 
     var body: some View {
-        HStack {
-            // 왼쪽: 제목과 날짜 (왼쪽 정렬)
-            VStack(alignment: .leading, spacing: 4) {
-                Spacer()
-
-                Text(event.title)
-                    .font(.title2)
-                    .foregroundColor(.white)
-                Spacer()
-                Text(formattedDate(from: event.targetDate))
-                    .font(.footnote)
-                    .foregroundColor(.gray)
-                Spacer()
-
+        ZStack {
+            // 셀 전체를 덮는 숨겨진 NavigationLink
+            NavigationLink(destination: EditDDayView(event: event)) {
+                EmptyView()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            // 오른쪽: D-day 텍스트
-            Text(calculateDDayText(from: event.targetDate))
-                .font(.title3)
-                .foregroundColor(.white)
-        }
-        .frame(height: 80)
-        .padding(.horizontal)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.black.opacity(0.3))
-        )
-        .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 3)
-        // 스와이프 액션 (삭제)
-        .swipeActions(edge: .trailing) {
-            Button(role: .destructive) {
-                modelContext.delete(event)
-                do {
-                    try modelContext.save()
-                } catch {
-                    print("삭제 실패: \(error)")
+            .opacity(0)  // 보이지 않게 처리
+
+            HStack {
+                // 왼쪽: 제목과 날짜 (왼쪽 정렬)
+                VStack(alignment: .leading, spacing: 4) {
+                    Spacer()
+                    Text(event.title)
+                        .font(.title2)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Text(formattedDate(from: event.targetDate))
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                    Spacer()
                 }
-            } label: {
-                Label("삭제", systemImage: "trash")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // 오른쪽: D-day 텍스트
+                Text(calculateDDayText(from: event.targetDate))
+                    .font(.title3)
+                    .foregroundColor(.white)
+            }
+            .frame(height: 80)
+            .padding(.horizontal)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.black.opacity(0.3))
+            )
+            .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 3)
+            // 스와이프 액션 (삭제)
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    modelContext.delete(event)
+                    do {
+                        try modelContext.save()
+                    } catch {
+                        print("삭제 실패: \(error)")
+                    }
+                } label: {
+                    Label("삭제", systemImage: "trash")
+                }
             }
         }
     }
