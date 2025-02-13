@@ -16,7 +16,7 @@ struct EditDDayView: View {
     
     @State private var title: String
     @State private var targetDate: Date
-
+    
     init(event: DDayEvent) {
         self.event = event
         _title = State(initialValue: event.title)
@@ -32,6 +32,9 @@ struct EditDDayView: View {
                 Section(header: Text("디데이 정보").foregroundStyle(Color.white)) {
                     TextField("제목", text: $title)
                     DatePicker("날짜", selection: $targetDate, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                        .tint(.white)
+                        .colorScheme(.dark)
                 }
                 .foregroundStyle(Color.white)
                 .listRowBackground(Color.black.opacity(0.3))
