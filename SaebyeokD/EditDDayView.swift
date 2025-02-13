@@ -53,6 +53,19 @@ struct EditDDayView: View {
             .background(Color.clear)
         }
         .navigationTitle("디데이 편집")
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(.white)
+                        .padding(8)
+                }
+            }
+        }
     }
 }
 

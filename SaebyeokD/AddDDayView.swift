@@ -11,15 +11,15 @@ import SwiftData
 struct AddDDayView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-
+    
     @State private var title: String = ""
     @State private var targetDate: Date = Date()
-
+    
     var body: some View {
         ZStack {
             NightSkyBackground()
                 .ignoresSafeArea()
-
+            
             Form {
                 Section(header: Text("디데이 정보").foregroundStyle(Color.white)) {
                     TextField("제목", text: $title)
@@ -43,6 +43,19 @@ struct AddDDayView: View {
             .background(Color.clear)
         }
         .navigationTitle("디데이 추가")
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(.white)
+                        .padding(8)
+                }
+            }
+        }
     }
 }
 
