@@ -26,7 +26,6 @@ struct EditDDayView: View {
     
     var body: some View {
         ZStack {
-            // 배경 적용
             NightSkyBackground()
                 .ignoresSafeArea()
             
@@ -37,7 +36,6 @@ struct EditDDayView: View {
                 }
                 
                 Button("저장") {
-                    // 이벤트 업데이트
                     event.title = title
                     event.targetDate = targetDate
                     
@@ -50,6 +48,7 @@ struct EditDDayView: View {
                 }
                 .disabled(title.isEmpty)
             }
+            .font(.custom("NIXGONM-Vb", size: 18))
             .scrollContentBackground(.hidden)
             .background(Color.clear)
         }
@@ -58,7 +57,7 @@ struct EditDDayView: View {
 }
 
 #Preview {
-    // 미리보기를 위한 더미 이벤트 생성
+    // 더미
     let dummyEvent = DDayEvent(title: "생일", targetDate: Date())
     return NavigationStack {
         EditDDayView(event: dummyEvent)

@@ -17,13 +17,11 @@ struct AddDDayView: View {
 
     var body: some View {
         ZStack {
-            // 전체 배경으로 NightSkyBackground 적용
             NightSkyBackground()
                 .ignoresSafeArea()
 
-            // Form의 기본 배경을 숨김
             Form {
-                Section(header: Text("디데이 정보")) {
+                Section(header: Text("디데이 정보").foregroundStyle(Color.white)) {
                     TextField("제목", text: $title)
                     DatePicker("날짜", selection: $targetDate, displayedComponents: .date)
                 }
@@ -40,8 +38,9 @@ struct AddDDayView: View {
                 }
                 .disabled(title.isEmpty)
             }
-            .scrollContentBackground(.hidden)  // 기본 배경 숨김
-            .background(Color.clear)           // 명시적으로 투명 배경 설정
+            .font(.custom("NIXGONM-Vb", size: 18))
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
         }
         .navigationTitle("디데이 추가")
     }

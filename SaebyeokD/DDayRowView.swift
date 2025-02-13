@@ -14,31 +14,31 @@ struct DDayRowView: View {
 
     var body: some View {
         ZStack {
-            // 셀 전체를 덮는 숨겨진 NavigationLink
             NavigationLink(destination: EditDDayView(event: event)) {
                 EmptyView()
             }
-            .opacity(0)  // 보이지 않게 처리
+            .opacity(0)
 
             HStack {
                 // 왼쪽: 제목과 날짜 (왼쪽 정렬)
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer()
                     Text(event.title)
-                        .font(.title2)
+                        .font(.custom("NIXGONM-Vb", size: 24))
                         .foregroundColor(.white)
                     Spacer()
                     Text(formattedDate(from: event.targetDate))
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                        .font(.custom("NIXGONL-Vb", size: 14))
+                        .foregroundColor(.white)
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // 오른쪽: D-day 텍스트
                 Text(calculateDDayText(from: event.targetDate))
-                    .font(.title3)
+                    .font(.custom("NIXGONM-Vb", size: 28))
                     .foregroundColor(.white)
+                    .kerning(-2)
             }
             .frame(height: 80)
             .padding(.horizontal)
@@ -46,7 +46,7 @@ struct DDayRowView: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.black.opacity(0.3))
             )
-            // 스와이프 액션 (삭제)
+            // 스와이프 삭제
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive) {
                     modelContext.delete(event)
@@ -69,7 +69,6 @@ struct DDayRowView: View {
         return formatter.string(from: date)
     }
     
-    /// 오늘부터 targetDate까지 남은 일수에 따라 "오늘", "D-숫자", "D+숫자" 반환
     func calculateDDayText(from targetDate: Date) -> String {
         let calendar = Calendar.current
         let startOfToday = calendar.startOfDay(for: Date())

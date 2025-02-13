@@ -31,6 +31,7 @@ struct ContentView: View {
                             } label: {
                                 VStack(spacing: 4) {
                                     Text(tab.rawValue)
+                                        .font(.custom("NIXGONM-Vb", size: 18))
                                         .foregroundColor(selectedTab == tab ? .white : .gray)
                                     // 선택된 탭 밑줄
                                     Rectangle()
@@ -71,8 +72,14 @@ struct ContentView: View {
                     appearance.configureWithOpaqueBackground()
                     appearance.backgroundColor = .clear
                     appearance.shadowColor = .clear
-                    appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-                    appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+                    appearance.titleTextAttributes = [
+                        .foregroundColor: UIColor.white,
+                        .font: UIFont(name: "NIXGONM-Vb", size: 24)!
+                    ]
+                    appearance.largeTitleTextAttributes = [
+                        .foregroundColor: UIColor.white,
+                        .font: UIFont(name: "NIXGONM-Vb", size: 36)!
+                    ]
                     UINavigationBar.appearance().standardAppearance = appearance
                     UINavigationBar.appearance().scrollEdgeAppearance = appearance
                 }
