@@ -86,23 +86,28 @@ struct ContentView: View {
             }
             // 플로팅 버튼
             .overlay(
-                NavigationLink(destination: AddDDayView()) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black)
-                        .opacity(0.3)
-                        .clipShape(Circle())
-                        .shadow(radius: 4)
-                }
-                    .padding(.trailing, 24)
-                    .padding(.bottom, 24),
+                Group {
+                    if selectedTab == .dday {
+                        NavigationLink(destination: AddDDayView()) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(Color.black)
+                                .opacity(0.3)
+                                .clipShape(Circle())
+                                .shadow(radius: 4)
+                        }
+                        .padding(.trailing, 24)
+                        .padding(.bottom, 24)
+                    }
+                },
                 alignment: .bottomTrailing
             )
         }
     }
 }
+
 
 #Preview {
     ContentView()
