@@ -46,7 +46,6 @@ struct DDayRowView: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.black.opacity(0.3))
             )
-            .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 3)
             // 스와이프 액션 (삭제)
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive) {
@@ -63,10 +62,10 @@ struct DDayRowView: View {
         }
     }
     
-    /// 날짜를 "Feb 8, 2025" 와 같이 medium 스타일로 변환
     func formattedDate(from date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyyy.MM.dd(EEE)"
         return formatter.string(from: date)
     }
     
