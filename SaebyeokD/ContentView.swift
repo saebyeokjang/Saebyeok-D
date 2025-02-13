@@ -84,26 +84,18 @@ struct ContentView: View {
                     UINavigationBar.appearance().scrollEdgeAppearance = appearance
                 }
             }
-            // 플로팅 버튼
-            .overlay(
-                Group {
+            // 디데이 추가 버튼
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     if selectedTab == .dday {
                         NavigationLink(destination: AddDDayView()) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 24, weight: .bold))
+                            Text("디데이 추가")
+                                .font(.custom("NIXGONM-Vb", size: 18))
                                 .foregroundColor(.white)
-                                .padding()
-                                .background(Color.black)
-                                .opacity(0.3)
-                                .clipShape(Circle())
-                                .shadow(radius: 4)
                         }
-                        .padding(.trailing, 24)
-                        .padding(.bottom, 24)
                     }
-                },
-                alignment: .bottomTrailing
-            )
+                }
+            }
         }
     }
 }
