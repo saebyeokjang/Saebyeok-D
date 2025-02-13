@@ -11,7 +11,7 @@ struct SettingsView: View {
     var body: some View {
         VStack {
             Text("준비중입니다...")
-                .font(.title)
+                .font(.custom("NIXGONB-Vb", size: 24))
                 .foregroundStyle(.white)
             // 설정
         }

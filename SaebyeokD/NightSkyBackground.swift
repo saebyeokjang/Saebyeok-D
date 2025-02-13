@@ -16,7 +16,11 @@ struct NightSkyBackground: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 //.brightness(-0.1) // 어둡게
                 .clipped()
+                .opacity(0.97)
         }
         .ignoresSafeArea()
     }
+}
+#Preview {
+    ContentView()
 }

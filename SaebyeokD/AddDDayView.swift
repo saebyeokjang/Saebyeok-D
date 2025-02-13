@@ -21,12 +21,20 @@ struct AddDDayView: View {
                 .ignoresSafeArea()
             
             Form {
-                Section(header: Text("디데이 정보").foregroundStyle(Color.white)) {
-                    TextField("제목", text: $title)
+                Section(header: Text("디데이 정보")) {
+                    ZStack(alignment: .leading) {
+                        if title.isEmpty {
+                            Text("제목").foregroundColor(.gray)
+                        }
+                        TextField("", text: $title).foregroundColor(.white)
+                    }
                     DatePicker("날짜", selection: $targetDate, displayedComponents: .date)
                 }
+                .foregroundStyle(Color.white)
+                .listRowBackground(Color.black.opacity(0.3))
+                .font(.custom("NIXGONM-Vb", size: 18))
                 
-                Button("저장") {
+                Button(action: {
                     let newEvent = DDayEvent(title: title, targetDate: targetDate)
                     modelContext.insert(newEvent)
                     do {
@@ -35,10 +43,20 @@ struct AddDDayView: View {
                         print("저장 실패: \(error)")
                     }
                     dismiss()
+                }) {
+                    HStack {
+                        Spacer()
+                        Text("추가")
+                            .font(.custom("NIXGONM-Vb", size: 18))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
                 }
+                .foregroundStyle(Color.white)
+                .font(.custom("NIXGONB-Vb", size: 20))
                 .disabled(title.isEmpty)
+                .listRowBackground(Color.black.opacity(0.3))
             }
-            .font(.custom("NIXGONM-Vb", size: 18))
             .scrollContentBackground(.hidden)
             .background(Color.clear)
         }

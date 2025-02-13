@@ -16,8 +16,7 @@ struct EditDDayView: View {
     
     @State private var title: String
     @State private var targetDate: Date
-    
-    // 초기화 시 전달받은 event의 값을 state에 할당
+
     init(event: DDayEvent) {
         self.event = event
         _title = State(initialValue: event.title)
@@ -34,8 +33,11 @@ struct EditDDayView: View {
                     TextField("제목", text: $title)
                     DatePicker("날짜", selection: $targetDate, displayedComponents: .date)
                 }
+                .foregroundStyle(Color.white)
+                .listRowBackground(Color.black.opacity(0.3))
+                .font(.custom("NIXGONM-Vb", size: 18))
                 
-                Button("저장") {
+                Button(action: {
                     event.title = title
                     event.targetDate = targetDate
                     
@@ -45,10 +47,18 @@ struct EditDDayView: View {
                         print("저장 실패: \(error)")
                     }
                     dismiss()
+                }) {
+                    HStack {
+                        Spacer()
+                        Text("저장")
+                            .font(.custom("NIXGONM-Vb", size: 18))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
                 }
-                .disabled(title.isEmpty)
+                .foregroundStyle(Color.white)
+                .listRowBackground(Color.black.opacity(0.3))
             }
-            .font(.custom("NIXGONM-Vb", size: 18))
             .scrollContentBackground(.hidden)
             .background(Color.clear)
         }
