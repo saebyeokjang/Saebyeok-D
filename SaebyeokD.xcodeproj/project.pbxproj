@@ -6,8 +6,42 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D8D403302D5F020C002E8E03 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D4032F2D5F020C002E8E03 /* WidgetKit.framework */; };
+		D8D403322D5F020C002E8E03 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D403312D5F020C002E8E03 /* SwiftUI.framework */; };
+		D8D403422D5F020D002E8E03 /* DDayWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D8D4032D2D5F020C002E8E03 /* DDayWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D8D4033F2D5F020D002E8E03 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D87647682D55F1D40047D2F0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D8D4032C2D5F020C002E8E03;
+			remoteInfo = DDayWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D8D403412D5F020D002E8E03 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D8D403422D5F020D002E8E03 /* DDayWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		D87647702D55F1D40047D2F0 /* SaebyeokD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SaebyeokD.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8D4032D2D5F020C002E8E03 /* DDayWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DDayWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8D4032F2D5F020C002E8E03 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		D8D403312D5F020C002E8E03 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		D8D403482D5F0BB5002E8E03 /* DDayWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DDayWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -17,6 +51,13 @@
 				Info.plist,
 			);
 			target = D876476F2D55F1D40047D2F0 /* SaebyeokD */;
+		};
+		D8D403462D5F020E002E8E03 /* Exceptions for "DDayWidget" folder in "DDayWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D8D4032C2D5F020C002E8E03 /* DDayWidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -29,6 +70,14 @@
 			path = SaebyeokD;
 			sourceTree = "<group>";
 		};
+		D8D403332D5F020C002E8E03 /* DDayWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D8D403462D5F020E002E8E03 /* Exceptions for "DDayWidget" folder in "DDayWidgetExtension" target */,
+			);
+			path = DDayWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,13 +88,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D8D4032A2D5F020C002E8E03 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8D403322D5F020C002E8E03 /* SwiftUI.framework in Frameworks */,
+				D8D403302D5F020C002E8E03 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		D87647672D55F1D40047D2F0 = {
 			isa = PBXGroup;
 			children = (
+				D8D403482D5F0BB5002E8E03 /* DDayWidgetExtension.entitlements */,
 				D87647722D55F1D40047D2F0 /* SaebyeokD */,
+				D8D403332D5F020C002E8E03 /* DDayWidget */,
+				D8D4032E2D5F020C002E8E03 /* Frameworks */,
 				D87647712D55F1D40047D2F0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,8 +115,18 @@
 			isa = PBXGroup;
 			children = (
 				D87647702D55F1D40047D2F0 /* SaebyeokD.app */,
+				D8D4032D2D5F020C002E8E03 /* DDayWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D8D4032E2D5F020C002E8E03 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D8D4032F2D5F020C002E8E03 /* WidgetKit.framework */,
+				D8D403312D5F020C002E8E03 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -68,10 +139,12 @@
 				D876476C2D55F1D40047D2F0 /* Sources */,
 				D876476D2D55F1D40047D2F0 /* Frameworks */,
 				D876476E2D55F1D40047D2F0 /* Resources */,
+				D8D403412D5F020D002E8E03 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D8D403402D5F020D002E8E03 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D87647722D55F1D40047D2F0 /* SaebyeokD */,
@@ -82,6 +155,28 @@
 			productName = SaebyeokD;
 			productReference = D87647702D55F1D40047D2F0 /* SaebyeokD.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D8D4032C2D5F020C002E8E03 /* DDayWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D8D403452D5F020E002E8E03 /* Build configuration list for PBXNativeTarget "DDayWidgetExtension" */;
+			buildPhases = (
+				D8D403292D5F020C002E8E03 /* Sources */,
+				D8D4032A2D5F020C002E8E03 /* Frameworks */,
+				D8D4032B2D5F020C002E8E03 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D8D403332D5F020C002E8E03 /* DDayWidget */,
+			);
+			name = DDayWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = DDayWidgetExtension;
+			productReference = D8D4032D2D5F020C002E8E03 /* DDayWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -94,6 +189,9 @@
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					D876476F2D55F1D40047D2F0 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					D8D4032C2D5F020C002E8E03 = {
 						CreatedOnToolsVersion = 16.2;
 					};
 				};
@@ -113,12 +211,20 @@
 			projectRoot = "";
 			targets = (
 				D876476F2D55F1D40047D2F0 /* SaebyeokD */,
+				D8D4032C2D5F020C002E8E03 /* DDayWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		D876476E2D55F1D40047D2F0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D8D4032B2D5F020C002E8E03 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -135,7 +241,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D8D403292D5F020C002E8E03 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D8D403402D5F020D002E8E03 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D8D4032C2D5F020C002E8E03 /* DDayWidgetExtension */;
+			targetProxy = D8D4033F2D5F020D002E8E03 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		D876477E2D55F1D50047D2F0 /* Debug */ = {
@@ -262,6 +383,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SaebyeokD/SaebyeokD.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SaebyeokD/Preview Content\"";
@@ -269,6 +391,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SaebyeokD/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "새벽:D";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -292,6 +415,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SaebyeokD/SaebyeokD.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SaebyeokD/Preview Content\"";
@@ -299,6 +423,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SaebyeokD/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "새벽:D";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -311,6 +436,62 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jangsaebyeok.SaebyeokD;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D8D403432D5F020E002E8E03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = DDayWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6Z8UAF8H5G;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DDayWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DDayWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jangsaebyeok.SaebyeokD.DDayWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D8D403442D5F020E002E8E03 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = DDayWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6Z8UAF8H5G;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DDayWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = DDayWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jangsaebyeok.SaebyeokD.DDayWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -334,6 +515,15 @@
 			buildConfigurations = (
 				D87647812D55F1D50047D2F0 /* Debug */,
 				D87647822D55F1D50047D2F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D8D403452D5F020E002E8E03 /* Build configuration list for PBXNativeTarget "DDayWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8D403432D5F020E002E8E03 /* Debug */,
+				D8D403442D5F020E002E8E03 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

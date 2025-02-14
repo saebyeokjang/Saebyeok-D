@@ -43,9 +43,9 @@ struct EditDDayView: View {
                 Button(action: {
                     event.title = title
                     event.targetDate = targetDate
-                    
                     do {
                         try modelContext.save()
+                        updateDDayWidget(with: event)
                     } catch {
                         print("저장 실패: \(error)")
                     }
@@ -79,13 +79,5 @@ struct EditDDayView: View {
                 }
             }
         }
-    }
-}
-
-#Preview {
-    // 더미
-    let dummyEvent = DDayEvent(title: "생일", targetDate: Date())
-    return NavigationStack {
-        EditDDayView(event: dummyEvent)
     }
 }

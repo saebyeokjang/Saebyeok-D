@@ -14,6 +14,7 @@ struct AddDDayView: View {
     
     @State private var title: String = ""
     @State private var targetDate: Date = Date()
+    @State private var showErrorAlert = false
     
     var body: some View {
         ZStack {
@@ -42,8 +43,11 @@ struct AddDDayView: View {
                     modelContext.insert(newEvent)
                     do {
                         try modelContext.save()
+                        updateDDayWidget(with: newEvent)
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     } catch {
                         print("저장 실패: \(error)")
+                        showErrorAlert = true
                     }
                     dismiss()
                 }) {
@@ -54,6 +58,9 @@ struct AddDDayView: View {
                             .foregroundColor(.white)
                         Spacer()
                     }
+                }
+                .alert("저장 실패", isPresented: $showErrorAlert) {
+                    Button("확인", role: .cancel) { }
                 }
                 .foregroundStyle(Color.white)
                 .font(.custom("NIXGONB-Vb", size: 20))

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .dday
@@ -22,75 +21,34 @@ struct ContentView: View {
                 NightSkyBackground()
                 
                 VStack(spacing: 16) {
-                    HStack {
-                        ForEach(Tab.allCases, id: \.self) { tab in
-                            Button {
-                                withAnimation {
-                                    selectedTab = tab
-                                }
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Text(tab.rawValue)
-                                        .font(.custom("NIXGONM-Vb", size: 18))
-                                        .foregroundColor(selectedTab == tab ? .white : .gray)
-                                    // 선택된 탭 밑줄
-                                    Rectangle()
-                                        .fill(selectedTab == tab ? Color.white : Color.clear)
-                                        .frame(height: 2)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 4)
-                    .background(Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .padding(.top, 16)
+                    tabSelector
                     
-                    ZStack {
+                    // 애니메이션을 없애기 위해 ZStack을 VStack으로 변경
+                    VStack {
                         if selectedTab == .dday {
                             DDayListView()
-                                .transition(.move(edge: .trailing))
-                        } else if selectedTab == .settings {
+                        } else {
                             SettingsView()
-                                .transition(.move(edge: .leading))
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
                     .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
                     .padding(.horizontal)
                     .padding(.bottom, 16)
-                    .animation(nil, value: selectedTab)
                 }
                 .navigationTitle("새벽:D")
                 .navigationBarTitleDisplayMode(.large)
                 .onAppear {
-                    let appearance = UINavigationBarAppearance()
-                    appearance.configureWithOpaqueBackground()
-                    appearance.backgroundColor = .clear
-                    appearance.shadowColor = .clear
-                    appearance.titleTextAttributes = [
-                        .foregroundColor: UIColor.white,
-                        .font: UIFont(name: "NIXGONM-Vb", size: 24)!
-                    ]
-                    appearance.largeTitleTextAttributes = [
-                        .foregroundColor: UIColor.white,
-                        .font: UIFont(name: "NIXGONM-Vb", size: 36)!
-                    ]
-                    UINavigationBar.appearance().standardAppearance = appearance
-                    UINavigationBar.appearance().scrollEdgeAppearance = appearance
+                    setupNavigationBarAppearance()
                 }
             }
-            // 디데이 추가 버튼
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if selectedTab == .dday {
                         NavigationLink(destination: AddDDayView()) {
                             Text("디데이 추가")
-                                .font(.custom("NIXGONM-Vb", size: 18))
+                                .font(customFont(size: 18))
                                 .foregroundColor(.white)
                         }
                     }
@@ -98,8 +56,53 @@ struct ContentView: View {
             }
         }
     }
+    
+    private var tabSelector: some View {
+        HStack {
+            ForEach(Tab.allCases, id: \.self) { tab in
+                Button {
+                    selectedTab = tab
+                } label: {
+                    VStack(spacing: 4) {
+                        Text(tab.rawValue)
+                            .font(customFont(size: 18))
+                            .foregroundColor(selectedTab == tab ? .white : .gray)
+                        Rectangle()
+                            .fill(Color.white)
+                            .opacity(selectedTab == tab ? 1 : 0)
+                            .frame(height: 2)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 4)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.top, 16)
+    }
+    
+    private func customFont(size: CGFloat) -> Font {
+        Font.custom("NIXGONM-Vb", size: size, relativeTo: .body)
+    }
+    
+    private func setupNavigationBarAppearance() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .clear
+        appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont(name: "NIXGONM-Vb", size: 24) ?? UIFont.systemFont(ofSize: 24, weight: .bold)
+        ]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont(name: "NIXGONM-Vb", size: 36) ?? UIFont.systemFont(ofSize: 36, weight: .bold)
+        ]
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    }
 }
-
 
 #Preview {
     ContentView()
