@@ -58,6 +58,7 @@ struct DDayRowView: View {
                 } label: {
                     Label("삭제", systemImage: "trash")
                 }
+                .tint(Color(UIColor.darkGray))
             }
         }
     }
