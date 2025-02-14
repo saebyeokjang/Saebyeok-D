@@ -87,42 +87,88 @@ struct Provider: TimelineProvider {
 
 struct DDayWidgetEntryView: View {
     var entry: Provider.Entry
-    
+    @Environment(\.widgetFamily) var widgetFamily
+
     var body: some View {
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [Color("WidgetGradientStart"), Color("WidgetGradientEnd")]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // 배경: 원하는 배경으로 설정하세요.
+            Image("NightSkyW")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .ignoresSafeArea()
             
-            VStack(alignment: .leading, spacing: 4) {
-                if let firstEvent = entry.events.first {
-                    HStack {
+            switch widgetFamily {
+            case .systemSmall:
+                // 스몰 사이즈
+                VStack(spacing: 8) {
+                    if let firstEvent = entry.events.first {
+                        Spacer()
                         Text(firstEvent.title)
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                            .font(.custom("NIXGONL-Vb", size: 24))
                             .foregroundColor(.white)
                             .lineLimit(1)
                         Spacer()
                         Text(firstEvent.dDayText)
-                            .font(.system(size: 32, weight: .heavy, design: .rounded))
+                            .font(.custom("NIXGONM-Vb", size: 32))
                             .foregroundColor(.white)
                             .lineLimit(1)
+                        Spacer()
+                    } else {
+                        Text("디데이 정보가 없습니다.")
+                            .font(.system(.headline, design: .rounded))
+                            .foregroundColor(.white)
                     }
-                } else {
-                    Text("디데이 정보가 없습니다.")
-                        .font(.system(.headline, design: .rounded))
-                        .foregroundColor(.white)
                 }
+                .padding()
+            case .systemMedium:
+                // 미디엄 사이즈
+                HStack {
+                    if let firstEvent = entry.events.first {
+                        Spacer()
+                        Text(firstEvent.title)
+                            .font(.custom("NIXGONL-Vb", size: 24))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(firstEvent.dDayText)
+                            .font(.custom("NIXGONM-Vb", size: 32))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                        Spacer()
+                    } else {
+                        Text("디데이 정보가 없습니다.")
+                            .font(.system(.headline, design: .rounded))
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding()
+            default:
+                // 다른 크기
+                HStack {
+                    if let firstEvent = entry.events.first {
+                        Text(firstEvent.title)
+                            .font(.custom("NIXGONL-Vb", size: 24))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(firstEvent.dDayText)
+                            .font(.custom("NIXGONM-Vb", size: 32))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                    } else {
+                        Text("디데이 정보가 없습니다.")
+                            .font(.system(.headline, design: .rounded))
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding()
             }
-            .padding()
-            .background(Color.black.opacity(0.5))
-            .cornerRadius(12)
-            .padding()
         }
         .containerBackground(for: .widget) {
-            Color.clear
+            Image("NightSkyW")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .ignoresSafeArea()
         }
     }
 }
@@ -138,7 +184,8 @@ struct DDayWidget: Widget {
         .configurationDisplayName("디데이 위젯")
         .description("앱의 디데이 이벤트 목록을 확인할 수 있습니다.")
         .supportedFamilies([.systemSmall, .systemMedium])
+        .contentMarginsDisabled()
     }
 }
 
-#Preview(as: .systemMedium, widget: { DDayWidget() }, timelineProvider: { Provider() })
+#Preview(as: .systemSmall, widget: { DDayWidget() }, timelineProvider: { Provider() })

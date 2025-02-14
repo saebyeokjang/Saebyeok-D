@@ -7,5 +7,11 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>NIXGONFONTS M 2.0.ttf</string>
+		<string>NIXGONFONTS L 2.0.ttf</string>
+		<string>NIXGONFONTS B 2.0.ttf</string>
+	</array>
 </dict>
 </plist>
