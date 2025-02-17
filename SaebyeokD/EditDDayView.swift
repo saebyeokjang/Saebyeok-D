@@ -45,7 +45,7 @@ struct EditDDayView: View {
                     event.targetDate = targetDate
                     do {
                         try modelContext.save()
-                        updateDDayWidget(with: event)
+                        updateWidgetSharedData(modelContext: modelContext)
                     } catch {
                         print("저장 실패: \(error)")
                     }

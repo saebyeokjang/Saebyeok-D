@@ -43,7 +43,7 @@ struct AddDDayView: View {
                     modelContext.insert(newEvent)
                     do {
                         try modelContext.save()
-                        updateDDayWidget(with: newEvent)
+                        updateWidgetSharedData(modelContext: modelContext)
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     } catch {
                         print("저장 실패: \(error)")
