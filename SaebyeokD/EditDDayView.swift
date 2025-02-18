@@ -31,10 +31,7 @@ struct EditDDayView: View {
             Form {
                 Section(header: Text("디데이 정보").foregroundStyle(Color.white)) {
                     TextField("제목", text: $title)
-                    DatePicker("날짜", selection: $targetDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .tint(.white)
-                        .colorScheme(.dark)
+                    ConfirmableDatePicker(selectedDate: $targetDate)
                 }
                 .foregroundStyle(Color.white)
                 .listRowBackground(Color.black.opacity(0.3))

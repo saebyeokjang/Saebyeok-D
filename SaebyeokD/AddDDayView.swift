@@ -29,10 +29,7 @@ struct AddDDayView: View {
                         }
                         TextField("", text: $title).foregroundColor(.white)
                     }
-                    DatePicker("날짜", selection: $targetDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .tint(.white)
-                        .colorScheme(.dark)
+                    ConfirmableDatePicker(selectedDate: $targetDate)
                 }
                 .foregroundStyle(Color.white)
                 .listRowBackground(Color.black.opacity(0.3))

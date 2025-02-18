@@ -101,9 +101,13 @@ struct Provider: TimelineProvider {
         let events = loadSharedDDayEvents()
         let currentDate = Date()
         let entry = DDayEntry(date: currentDate, events: events)
-        // 15분 후 업데이트 (필요에 따라 조정)
-        let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate)!
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
+        
+        // 내일 0시(자정)를 계산합니다.
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: currentDate)
+        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+        
+        let timeline = Timeline(entries: [entry], policy: .after(nextMidnight))
         completion(timeline)
     }
 }
