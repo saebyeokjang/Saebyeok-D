@@ -41,6 +41,7 @@ struct AddDDayView: View {
                     do {
                         try modelContext.save()
                         updateWidgetSharedData(modelContext: modelContext)
+                        NotificationManager.shared.scheduleNotification(for: newEvent)
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     } catch {
                         print("저장 실패: \(error)")

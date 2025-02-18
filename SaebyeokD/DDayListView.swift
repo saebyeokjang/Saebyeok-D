@@ -17,6 +17,7 @@ struct DDayListView: View {
                 DDayRowView(event: event)
                     .listRowInsets(EdgeInsets(top: 3, leading: 1, bottom: 3, trailing: 1))
                     .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
         }
         .listStyle(PlainListStyle())

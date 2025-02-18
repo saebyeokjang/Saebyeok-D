@@ -43,6 +43,8 @@ struct EditDDayView: View {
                     do {
                         try modelContext.save()
                         updateWidgetSharedData(modelContext: modelContext)
+                        NotificationManager.shared.cancelNotification(for: event)
+                        NotificationManager.shared.scheduleNotification(for: event)
                     } catch {
                         print("저장 실패: \(error)")
                     }

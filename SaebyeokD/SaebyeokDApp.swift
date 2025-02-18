@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 @main
 struct SaebyeokDApp: App {
@@ -22,6 +23,17 @@ struct SaebyeokDApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    init() {
+        // 알림 권한 요청
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if let error = error {
+                print("알림 권한 요청 에러: \(error.localizedDescription)")
+            } else {
+                print("알림 권한 승인 여부: \(granted)")
+            }
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
