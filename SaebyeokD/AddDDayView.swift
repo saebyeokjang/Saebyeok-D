@@ -14,6 +14,8 @@ struct AddDDayView: View {
     
     @State private var title: String = ""
     @State private var targetDate: Date = Date()
+    @State private var selectedEventType: DDayEventType = .countdown
+    
     @State private var showErrorAlert = false
     
     var body: some View {
@@ -25,18 +27,45 @@ struct AddDDayView: View {
                 Section(header: Text("디데이 정보")) {
                     ZStack(alignment: .leading) {
                         if title.isEmpty {
-                            Text("제목").foregroundColor(.gray)
+                            Text("제목")
+                                .foregroundColor(.gray)
                         }
-                        TextField("", text: $title).foregroundColor(.white)
+                        TextField("", text: $title)
+                            .foregroundColor(.white)
                     }
                     ConfirmableDatePicker(selectedDate: $targetDate)
+                    
+                    HStack {
+                        ForEach(DDayEventType.allCases, id: \.self) { type in
+                            Button {
+                                withAnimation {
+                                    selectedEventType = type
+                                }
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Text(displayName(for: type))
+                                        .font(.custom("NIXGONM-Vb", size: 16))
+                                        .foregroundColor(selectedEventType == type ? .white : .gray)
+                                    Rectangle()
+                                        .fill(selectedEventType == type ? Color.white : Color.clear)
+                                        .frame(height: 1)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 4)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.top, 8)
                 }
                 .foregroundStyle(Color.white)
                 .listRowBackground(Color.black.opacity(0.3))
                 .font(.custom("NIXGONM-Vb", size: 18))
                 
                 Button(action: {
-                    let newEvent = DDayEvent(title: title, targetDate: targetDate)
+                    let newEvent = DDayEvent(title: title, targetDate: targetDate, eventType: selectedEventType)
                     modelContext.insert(newEvent)
                     do {
                         try modelContext.save()
@@ -81,6 +110,15 @@ struct AddDDayView: View {
                         .padding(8)
                 }
             }
+        }
+    }
+    
+    private func displayName(for type: DDayEventType) -> String {
+        switch type {
+        case .countdown:
+            return "카운트다운"
+        case .dateCounter:
+            return "날짜세기"
         }
     }
 }

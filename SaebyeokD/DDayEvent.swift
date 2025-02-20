@@ -12,12 +12,14 @@ import SwiftData
 class DDayEvent {
     var title: String
     var targetDate: Date
-
-    init(title: String, targetDate: Date) {
+    var eventType: DDayEventType = DDayEventType.countdown
+    
+    init(title: String, targetDate: Date, eventType: DDayEventType = .countdown) {
         self.title = title
         self.targetDate = targetDate
+        self.eventType = eventType
     }
-
+    
     var dDayText: String {
         let calendar = Calendar.current
         let startOfToday = calendar.startOfDay(for: Date())
@@ -33,4 +35,9 @@ class DDayEvent {
             return "\(-diff + 1)일"
         }
     }
+}
+
+enum DDayEventType: String, Codable, CaseIterable {
+    case countdown
+    case dateCounter
 }

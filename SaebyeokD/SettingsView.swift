@@ -6,30 +6,39 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
+    @AppStorage("autoDeleteCountdown") private var autoDeleteCountdown: Bool = false
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         VStack(spacing: 0) {
             
-            // 디데이 설정 섹션 (미구현...)
+            // 디데이 설정 섹션
             VStack(alignment: .leading, spacing: 8) {
                 Text("디데이 설정")
                     .font(.custom("NIXGONB-Vb", size: 14))
                     .foregroundColor(.white)
-                Toggle(isOn: $notificationsEnabled) {
+                Toggle(isOn: $autoDeleteCountdown) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("지나간 디데이 숨기기")
+                        Text("지나간 카운트다운 자동 삭제")
                             .font(.custom("NIXGONM-Vb", size: 18))
                             .foregroundColor(.white)
-                        Text("날짜가 지나간 디데이를 삭제합니다")
+                        Text("카운트다운 디데이의 날짜가 지나면 자동으로 삭제합니다")
                             .font(.custom("NIXGONL-Vb", size: 14))
                             .foregroundColor(.white)
                     }
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
+                .onChange(of: autoDeleteCountdown) { newValue in
+                    print("autoDeleteCountdown changed: \(newValue)")
+                    if newValue {
+                        deletePastCountdownEvents(modelContext: modelContext)
+                    }
+                }
             }
             .padding(.vertical, 20)
             .padding(.horizontal)
@@ -87,6 +96,34 @@ struct SettingsView: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .scrollContentBackground(.hidden)
         .background(Color.black.opacity(0.3))
+    }
+}
+
+func deletePastCountdownEvents(modelContext: ModelContext) {
+    let autoDelete = UserDefaults.standard.bool(forKey: "autoDeleteCountdown")
+    if !autoDelete {
+        return
+    }
+    
+    let now = Date()
+    let fetchDescriptor = FetchDescriptor<DDayEvent>()
+    
+    do {
+        let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
+        
+        let pastCountdowns = allEvents.filter { event in
+            return event.eventType == DDayEventType.countdown && event.targetDate < now
+        }
+        
+        for event in pastCountdowns {
+            modelContext.delete(event)
+            NotificationManager.shared.cancelNotification(for: event)
+        }
+        try modelContext.save()
+        updateWidgetSharedData(modelContext: modelContext)
+        print("지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
+    } catch {
+        print("지난 카운트다운 이벤트 삭제 실패: \(error)")
     }
 }
 

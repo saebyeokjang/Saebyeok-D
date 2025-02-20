@@ -22,8 +22,6 @@ struct ContentView: View {
                 
                 VStack(spacing: 16) {
                     tabSelector
-                    
-                    // 애니메이션을 없애기 위해 ZStack을 VStack으로 변경
                     VStack {
                         if selectedTab == .dday {
                             DDayListView()
