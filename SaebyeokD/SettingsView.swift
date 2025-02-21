@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct SettingsView: View {
-    @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
+    @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
     @AppStorage("autoDeleteCountdown") private var autoDeleteCountdown: Bool = false
     @Environment(\.modelContext) var modelContext
     
@@ -26,7 +26,7 @@ struct SettingsView: View {
                         Text("지나간 카운트다운 자동 삭제")
                             .font(.custom("NIXGONM-Vb", size: 18))
                             .foregroundColor(.white)
-                        Text("카운트다운 디데이의 날짜가 지나면 자동으로 삭제합니다")
+                        Text("디데이의 날짜가 지나면 자동으로 삭제됩니다 (자정 업데이트)")
                             .font(.custom("NIXGONL-Vb", size: 14))
                             .foregroundColor(.white)
                     }
@@ -65,6 +65,21 @@ struct SettingsView: View {
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
+                // 알림 권한 재요청
+                .onChange(of: notificationsEnabled) { newValue, _ in
+                    if newValue {
+                        UNUserNotificationCenter.current().getNotificationSettings { settings in
+                            if settings.authorizationStatus != .authorized &&
+                                settings.authorizationStatus != .provisional {
+                                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                                    DispatchQueue.main.async {
+                                        notificationsEnabled = granted
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             .padding(.vertical, 20)
             .padding(.horizontal)
@@ -96,6 +111,15 @@ struct SettingsView: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .scrollContentBackground(.hidden)
         .background(Color.black.opacity(0.3))
+        .onAppear {
+            // 알림 권한 상태 업데이트
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                DispatchQueue.main.async {
+                    let isAuthorized = settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional
+                    notificationsEnabled = isAuthorized
+                }
+            }
+        }
     }
 }
 

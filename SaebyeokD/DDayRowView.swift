@@ -25,7 +25,7 @@ struct DDayRowView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer()
                     Text(event.title)
-                        .font(.custom("NIXGONM-Vb", size: 24))
+                        .font(.custom("NIXGONM-Vb", size: 20))
                         .foregroundColor(.white)
                     Spacer()
                     Text(formattedDate(from: event.targetDate))
