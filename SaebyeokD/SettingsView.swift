@@ -36,11 +36,6 @@ struct SettingsView: View {
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
-                .onChange(of: autoDeleteCountdown) { newValue, _ in
-                    if newValue {
-                        deletePastCountdownEvents()
-                    }
-                }
             }
             .padding(.vertical, 20)
             .padding(.horizontal)
@@ -67,16 +62,30 @@ struct SettingsView: View {
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
+                // 즉시 탭 제스처로 권한 상태 확인: 권한 거부 또는 미결정이면 설정 앱으로 이동 후 토글은 off로 복원
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        Task { @MainActor in
+                            let settings = await UNUserNotificationCenter.current().notificationSettings()
+                            if settings.authorizationStatus == .denied || settings.authorizationStatus == .notDetermined {
+                                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                                    openURL(settingsUrl)
+                                }
+                                notificationsEnabled = false
+                                print("권한 없음 - 토글 off로 복원")
+                            }
+                        }
+                    }
+                )
                 .onChange(of: notificationsEnabled) { newValue, _ in
                     Task { @MainActor in
-                        let settings = await UNUserNotificationCenter.current().notificationSettings()
-                        if settings.authorizationStatus == .denied {
-                            notificationsEnabled = false
-                            if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                                openURL(settingsUrl)
-                            }
-                        } else if settings.authorizationStatus == .notDetermined {
-                            requestNotificationPermission()
+                        if newValue {UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                            UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+                            print("알림 취소됨")
+                        } else {
+                            // 토글이 on일 때, 저장된 알림을 예약
+                            scheduleAllNotifications()
+                            print("알림 예약됨")
                         }
                     }
                 }
@@ -112,70 +121,72 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden)
         .background(Color.black.opacity(0.3))
         .onAppear {
-            checkNotificationAuthorizationStatus()
+            if autoDeleteCountdown {
+                deletePastCountdownEvents()
+            }
+            Task { @MainActor in
+                let settings = await UNUserNotificationCenter.current().notificationSettings()
+                print("앱 시작 시 알림 권한 상태: \(settings.authorizationStatus.rawValue)")
+            }
         }
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                checkNotificationAuthorizationStatus()
+            if newPhase == .active, autoDeleteCountdown {
+                // 앱이 active 상태로 전환될 때 만료된 이벤트 삭제
+                deletePastCountdownEvents()
+                Task { @MainActor in
+                    let settings = await UNUserNotificationCenter.current().notificationSettings()
+                    print("앱 활성화 시 알림 권한 상태: \(settings.authorizationStatus.rawValue)")
+                }
             }
         }
     }
     
+    // MARK: - Private Methods
+    
     private func deletePastCountdownEvents() {
+        // autoDeleteCountdown이 true일 때만 진행 (이 부분은 필요에 따라 제거 가능)
         if !autoDeleteCountdown { return }
         
         let now = Date()
+        // 현재 날짜의 자정
+        let startOfToday = Calendar.current.startOfDay(for: now)
         let fetchDescriptor = FetchDescriptor<DDayEvent>()
         
         do {
             let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
+            // targetDate의 자정이 오늘의 자정보다 이전인 경우 삭제 대상으로 간주합니다.
             let pastCountdowns = allEvents.filter { event in
-                event.eventType == DDayEventType.countdown && event.targetDate < now
+                // 카운트다운 유형 이벤트만 대상으로 합니다.
+                if event.eventType != DDayEventType.countdown { return false }
+                let eventStart = Calendar.current.startOfDay(for: event.targetDate)
+                return eventStart < startOfToday
             }
+            
+            print("총 이벤트: \(allEvents.count), 삭제 대상 이벤트 수: \(pastCountdowns.count)")
+            
             for event in pastCountdowns {
                 modelContext.delete(event)
                 NotificationManager.shared.cancelNotification(for: event)
             }
+            
             try modelContext.save()
             updateWidgetSharedData(modelContext: modelContext)
+            print("삭제 완료: 지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
         } catch {
             print("지난 카운트다운 이벤트 삭제 실패: \(error)")
         }
     }
     
-    private func handleNotificationPermission(isEnabled: Bool) {
-        guard isEnabled else { return }
-        
-        Task { @MainActor in
-            let settings = await UNUserNotificationCenter.current().notificationSettings()
-            if settings.authorizationStatus == .denied {
-                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                    openURL(settingsUrl)
-                }
-            } else if settings.authorizationStatus == .notDetermined {
-                requestNotificationPermission()
+    private func scheduleAllNotifications() {
+        let fetchDescriptor = FetchDescriptor<DDayEvent>()
+        do {
+            let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
+            for event in allEvents {
+                NotificationManager.shared.scheduleNotification(for: event)
             }
-        }
-    }
-    
-    private func requestNotificationPermission() {
-        Task { @MainActor in
-            do {
-                let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
-                notificationsEnabled = granted
-            } catch {
-                print("알림 권한 요청 실패: \(error)")
-                notificationsEnabled = false
-            }
-        }
-    }
-    
-    private func checkNotificationAuthorizationStatus() {
-        Task { @MainActor in
-            let settings = await UNUserNotificationCenter.current().notificationSettings()
-            let isAuthorized = settings.authorizationStatus == .authorized ||
-            settings.authorizationStatus == .provisional
-            notificationsEnabled = isAuthorized
+            print("저장된 알림 예약 완료")
+        } catch {
+            print("알림 예약 실패: \(error)")
         }
     }
 }
