@@ -7,15 +7,18 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 struct SettingsView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
     @AppStorage("autoDeleteCountdown") private var autoDeleteCountdown: Bool = false
+    
     @Environment(\.modelContext) var modelContext
+    @Environment(\.openURL) var openURL
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         VStack(spacing: 0) {
-            
             // 디데이 설정 섹션
             VStack(alignment: .leading, spacing: 8) {
                 Text("디데이 설정")
@@ -26,17 +29,16 @@ struct SettingsView: View {
                         Text("지나간 카운트다운 자동 삭제")
                             .font(.custom("NIXGONM-Vb", size: 18))
                             .foregroundColor(.white)
-                        Text("디데이의 날짜가 지나면 자동으로 삭제됩니다 (자정 업데이트)")
+                        Text("카운트다운 디데이의 날짜가 지나면 자동으로 삭제됩니다 (자정 업데이트)")
                             .font(.custom("NIXGONL-Vb", size: 14))
                             .foregroundColor(.white)
                     }
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
-                .onChange(of: autoDeleteCountdown) { newValue in
-                    print("autoDeleteCountdown changed: \(newValue)")
+                .onChange(of: autoDeleteCountdown) { newValue, _ in
                     if newValue {
-                        deletePastCountdownEvents(modelContext: modelContext)
+                        deletePastCountdownEvents()
                     }
                 }
             }
@@ -65,18 +67,16 @@ struct SettingsView: View {
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
-                // 알림 권한 재요청
                 .onChange(of: notificationsEnabled) { newValue, _ in
-                    if newValue {
-                        UNUserNotificationCenter.current().getNotificationSettings { settings in
-                            if settings.authorizationStatus != .authorized &&
-                                settings.authorizationStatus != .provisional {
-                                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-                                    DispatchQueue.main.async {
-                                        notificationsEnabled = granted
-                                    }
-                                }
+                    Task { @MainActor in
+                        let settings = await UNUserNotificationCenter.current().notificationSettings()
+                        if settings.authorizationStatus == .denied {
+                            notificationsEnabled = false
+                            if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                                openURL(settingsUrl)
                             }
+                        } else if settings.authorizationStatus == .notDetermined {
+                            requestNotificationPermission()
                         }
                     }
                 }
@@ -112,42 +112,71 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden)
         .background(Color.black.opacity(0.3))
         .onAppear {
-            // 알림 권한 상태 업데이트
-            UNUserNotificationCenter.current().getNotificationSettings { settings in
-                DispatchQueue.main.async {
-                    let isAuthorized = settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional
-                    notificationsEnabled = isAuthorized
-                }
+            checkNotificationAuthorizationStatus()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                checkNotificationAuthorizationStatus()
             }
         }
     }
-}
-
-func deletePastCountdownEvents(modelContext: ModelContext) {
-    let autoDelete = UserDefaults.standard.bool(forKey: "autoDeleteCountdown")
-    if !autoDelete {
-        return
+    
+    private func deletePastCountdownEvents() {
+        if !autoDeleteCountdown { return }
+        
+        let now = Date()
+        let fetchDescriptor = FetchDescriptor<DDayEvent>()
+        
+        do {
+            let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
+            let pastCountdowns = allEvents.filter { event in
+                event.eventType == DDayEventType.countdown && event.targetDate < now
+            }
+            for event in pastCountdowns {
+                modelContext.delete(event)
+                NotificationManager.shared.cancelNotification(for: event)
+            }
+            try modelContext.save()
+            updateWidgetSharedData(modelContext: modelContext)
+        } catch {
+            print("지난 카운트다운 이벤트 삭제 실패: \(error)")
+        }
     }
     
-    let now = Date()
-    let fetchDescriptor = FetchDescriptor<DDayEvent>()
+    private func handleNotificationPermission(isEnabled: Bool) {
+        guard isEnabled else { return }
+        
+        Task { @MainActor in
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+            if settings.authorizationStatus == .denied {
+                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                    openURL(settingsUrl)
+                }
+            } else if settings.authorizationStatus == .notDetermined {
+                requestNotificationPermission()
+            }
+        }
+    }
     
-    do {
-        let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
-        
-        let pastCountdowns = allEvents.filter { event in
-            return event.eventType == DDayEventType.countdown && event.targetDate < now
+    private func requestNotificationPermission() {
+        Task { @MainActor in
+            do {
+                let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
+                notificationsEnabled = granted
+            } catch {
+                print("알림 권한 요청 실패: \(error)")
+                notificationsEnabled = false
+            }
         }
-        
-        for event in pastCountdowns {
-            modelContext.delete(event)
-            NotificationManager.shared.cancelNotification(for: event)
+    }
+    
+    private func checkNotificationAuthorizationStatus() {
+        Task { @MainActor in
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+            let isAuthorized = settings.authorizationStatus == .authorized ||
+            settings.authorizationStatus == .provisional
+            notificationsEnabled = isAuthorized
         }
-        try modelContext.save()
-        updateWidgetSharedData(modelContext: modelContext)
-        print("지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
-    } catch {
-        print("지난 카운트다운 이벤트 삭제 실패: \(error)")
     }
 }
 
