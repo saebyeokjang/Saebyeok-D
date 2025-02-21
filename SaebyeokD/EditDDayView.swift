@@ -11,6 +11,7 @@ import SwiftData
 struct EditDDayView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
+    @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
     
     var event: DDayEvent
     
@@ -71,8 +72,14 @@ struct EditDDayView: View {
                     do {
                         try modelContext.save()
                         updateWidgetSharedData(modelContext: modelContext)
-                        NotificationManager.shared.cancelNotification(for: event)
-                        NotificationManager.shared.scheduleNotification(for: event)
+                        if notificationsEnabled {
+                            // 알림이 켜진 상태이면 기존 알림을 취소한 후 새로 예약
+                            NotificationManager.shared.cancelNotification(for: event)
+                            NotificationManager.shared.scheduleNotification(for: event)
+                        } else {
+                            // 알림이 꺼진 상태이면 알림 취소
+                            NotificationManager.shared.cancelNotification(for: event)
+                        }
                     } catch {
                         print("저장 실패: \(error)")
                     }

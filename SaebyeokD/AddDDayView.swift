@@ -11,6 +11,7 @@ import SwiftData
 struct AddDDayView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
+    @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
     
     @State private var title: String = ""
     @State private var targetDate: Date = Date()
@@ -70,8 +71,11 @@ struct AddDDayView: View {
                     do {
                         try modelContext.save()
                         updateWidgetSharedData(modelContext: modelContext)
-                        NotificationManager.shared.scheduleNotification(for: newEvent)
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        if notificationsEnabled {
+                            NotificationManager.shared.scheduleNotification(for: newEvent)
+                        } else {
+                            NotificationManager.shared.cancelNotification(for: newEvent)
+                        }
                     } catch {
                         print("저장 실패: \(error)")
                         showErrorAlert = true
