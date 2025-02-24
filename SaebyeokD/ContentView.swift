@@ -62,7 +62,7 @@ struct ContentView: View {
                 deletePastCountdownEvents()
             }
         }
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active, autoDeleteCountdown {
                 deletePastCountdownEvents()
             }
@@ -88,9 +88,9 @@ struct ContentView: View {
             }
             try modelContext.save()
             updateWidgetSharedData(modelContext: modelContext)
-            print("지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
+            print("ContentView - 지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
         } catch {
-            print("지난 카운트다운 이벤트 삭제 실패: \(error)")
+            print("ContentView - 지난 카운트다운 이벤트 삭제 실패: \(error)")
         }
     }
     
