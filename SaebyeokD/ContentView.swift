@@ -6,9 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .dday
+    @Environment(\.modelContext) var modelContext
+    @AppStorage("autoDeleteCountdown") private var autoDeleteCountdown: Bool = false
+    @Environment(\.scenePhase) private var scenePhase
     
     enum Tab: String, CaseIterable {
         case dday = "디데이"
@@ -52,6 +56,41 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            if autoDeleteCountdown {
+                deletePastCountdownEvents()
+            }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active, autoDeleteCountdown {
+                deletePastCountdownEvents()
+            }
+        }
+    }
+    
+    private func deletePastCountdownEvents() {
+        let now = Date()
+        let startOfToday = Calendar.current.startOfDay(for: now)
+        let fetchDescriptor = FetchDescriptor<DDayEvent>()
+        
+        do {
+            let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
+            let pastCountdowns = allEvents.filter { event in
+                guard event.eventType == DDayEventType.countdown else { return false }
+                let eventStart = Calendar.current.startOfDay(for: event.targetDate)
+                return eventStart < startOfToday
+            }
+            
+            for event in pastCountdowns {
+                modelContext.delete(event)
+                NotificationManager.shared.cancelNotification(for: event)
+            }
+            try modelContext.save()
+            updateWidgetSharedData(modelContext: modelContext)
+            print("지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
+        } catch {
+            print("지난 카운트다운 이벤트 삭제 실패: \(error)")
         }
     }
     
