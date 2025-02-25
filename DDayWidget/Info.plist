@@ -6,6 +6,13 @@
 	<dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>NSExtensionPointVersion</key>
+			<string>2.0</string>
+			<key>WidgetBackgroundRefreshPolicy</key>
+			<string>Always</string>
+		</dict>
 	</dict>
 	<key>UIAppFonts</key>
 	<array>
