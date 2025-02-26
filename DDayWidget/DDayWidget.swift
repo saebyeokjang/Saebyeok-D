@@ -52,7 +52,6 @@ struct DDayEntry: TimelineEntry {
     let events: [DDayEventData]
 }
 
-// "ddayList" 키에 저장된 JSON 데이터를 디코딩하여 이벤트 배열 반환
 func loadSharedDDayEvents() -> [DDayEventData] {
     guard let defaults = UserDefaults(suiteName: "group.com.SaebyeokD"),
           let data = defaults.data(forKey: "ddayList") else {
@@ -88,53 +87,47 @@ struct Provider: TimelineProvider {
         }
     
     func getTimeline(in context: Context, completion: @escaping (Timeline<DDayEntry>) -> Void) {
-            let events = loadSharedDDayEvents()
-            let currentDate = Date()
+        let events = loadSharedDDayEvents()
+        let currentDate = Date()
+        
+        var entries: [DDayEntry] = []
+        
+        let currentEntry = DDayEntry(date: currentDate, events: events)
+        entries.append(currentEntry)
+        
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: currentDate)
+        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+        
+        let midnightEvents = events.map { event -> DDayEventData in
+            let startOfMidnight = calendar.startOfDay(for: nextMidnight)
+            let startOfTarget = calendar.startOfDay(for: event.targetDate)
+            let diff = calendar.dateComponents([.day], from: startOfMidnight, to: startOfTarget).day ?? 0
             
-            // 여러 타임라인 엔트리 생성 (현재 + 자정)
-            var entries: [DDayEntry] = []
-            
-            // 현재 엔트리
-            let currentEntry = DDayEntry(date: currentDate, events: events)
-            entries.append(currentEntry)
-            
-            // 자정 계산
-            let calendar = Calendar.current
-            let startOfToday = calendar.startOfDay(for: currentDate)
-            let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
-            
-            // 자정 엔트리
-            let midnightEvents = events.map { event -> DDayEventData in
-                // 자정을 기준으로 D-day 텍스트 재계산
-                let startOfMidnight = calendar.startOfDay(for: nextMidnight)
-                let startOfTarget = calendar.startOfDay(for: event.targetDate)
-                let diff = calendar.dateComponents([.day], from: startOfMidnight, to: startOfTarget).day ?? 0
-                
-                let newDDayText: String
-                switch diff {
-                case 0:
-                    newDDayText = "오늘"
-                case 1...:
-                    newDDayText = "D-\(diff)"
-                default:
-                    newDDayText = "\(-diff + 1)일"
-                }
-                
-                return DDayEventData(
-                    id: UUID(uuidString: event.id) ?? UUID(),
-                    title: event.title,
-                    dDayText: newDDayText,
-                    targetDate: event.targetDate
-                )
+            let newDDayText: String
+            switch diff {
+            case 0:
+                newDDayText = "오늘"
+            case 1...:
+                newDDayText = "D-\(diff)"
+            default:
+                newDDayText = "\(-diff + 1)일"
             }
             
-            let midnightEntry = DDayEntry(date: nextMidnight, events: midnightEvents)
-            entries.append(midnightEntry)
-            
-            // 자정 이후 새 타임라인 요청
-            let timeline = Timeline(entries: entries, policy: .atEnd)
-            completion(timeline)
+            return DDayEventData(
+                id: UUID(uuidString: event.id) ?? UUID(),
+                title: event.title,
+                dDayText: newDDayText,
+                targetDate: event.targetDate
+            )
         }
+        
+        let midnightEntry = DDayEntry(date: nextMidnight, events: midnightEvents)
+        entries.append(midnightEntry)
+
+        let timeline = Timeline(entries: entries, policy: .after(nextMidnight))
+        completion(timeline)
+    }
 }
 
 struct DDayWidgetEntryView: View {
