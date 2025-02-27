@@ -18,7 +18,7 @@
 
 <table>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/5acb934d-2456-4e90-8804-b668b8af1c19" width="200"/></td>
+    <td><img src="https://github.com/user-attachments/assets/5e4a7042-312b-44fe-8f55-f3e29f4571e4" width="200"/></td>
     <td><img src="https://github.com/user-attachments/assets/a34c29e7-4753-4231-9426-69eeeba4f28c" width="200"/></td>
     <td><img src="https://github.com/user-attachments/assets/f99b213e-2c03-4d30-a186-55ed88c35b3b" width="200"/></td>
     <td><img src="https://github.com/user-attachments/assets/f164b028-a60b-48db-b988-376ec01f26eb" width="200"/></td>
