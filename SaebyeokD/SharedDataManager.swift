@@ -155,7 +155,7 @@ class SharedDataManager {
                     targetDate: event.targetDate
                 )
             }
-            let sortedEventDataArray = eventDataArray.sorted { $0.targetDate < $1.targetDate }
+            _ = eventDataArray.sorted { $0.targetDate < $1.targetDate }
             saveDDayEvents(eventDataArray)
             
             // 위젯 강제 업데이트
