@@ -8,6 +8,14 @@
 import SwiftUI
 import SwiftData
 
+struct PressableButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
 struct EditDDayView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
@@ -64,34 +72,64 @@ struct EditDDayView: View {
                 .listRowBackground(Color.black.opacity(0.3))
                 .font(.custom("NIXGONM-Vb", size: 18))
                 
-                Button(action: {
-                    event.title = title
-                    event.targetDate = targetDate
-                    event.eventType = selectedEventType
-                    
-                    do {
-                        try modelContext.save()
-                        SharedDataManager.shared.updateSingleEvent(event)
-                        if notificationsEnabled {
-                            // 알림이 켜진 상태이면 기존 알림을 취소한 후 새로 예약
-                            NotificationManager.shared.cancelNotification(for: event)
-                            NotificationManager.shared.scheduleNotification(for: event)
-                        } else {
-                            // 알림이 꺼진 상태이면 알림 취소
-                            NotificationManager.shared.cancelNotification(for: event)
+                HStack(spacing: 10) {
+                    Button(action: {
+                        let eventToDelete = event
+                        modelContext.delete(event)
+                        do {
+                            try modelContext.save()
+                            NotificationManager.shared.cancelNotification(for: eventToDelete)
+                            SharedDataManager.shared.removeSingleEvent(eventToDelete)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                SharedDataManager.shared.refreshAllWidgetData(modelContext: modelContext)
+                            }
+                        } catch {
+                            print("삭제 실패: \(error)")
                         }
-                    } catch {
-                        print("저장 실패: \(error)")
+                        dismiss()
+                    }) {
+                        HStack {
+                            Spacer()
+                            Text("삭제")
+                                .font(.custom("NIXGONM-Vb", size: 18))
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
                     }
-                    dismiss()
-                }) {
-                    HStack {
-                        Spacer()
-                        Text("저장")
-                            .font(.custom("NIXGONM-Vb", size: 18))
-                            .foregroundColor(.white)
-                        Spacer()
+                    .buttonStyle(PressableButtonStyle())
+                    .frame(maxWidth: .infinity)
+                    
+                    Button(action: {
+                        event.title = title
+                        event.targetDate = targetDate
+                        event.eventType = selectedEventType
+                        
+                        do {
+                            try modelContext.save()
+                            SharedDataManager.shared.updateSingleEvent(event)
+                            if notificationsEnabled {
+                                // 알림이 켜진 상태이면 기존 알림을 취소한 후 새로 예약
+                                NotificationManager.shared.cancelNotification(for: event)
+                                NotificationManager.shared.scheduleNotification(for: event)
+                            } else {
+                                // 알림이 꺼진 상태이면 알림 취소
+                                NotificationManager.shared.cancelNotification(for: event)
+                            }
+                        } catch {
+                            print("저장 실패: \(error)")
+                        }
+                        dismiss()
+                    }) {
+                        HStack {
+                            Spacer()
+                            Text("저장")
+                                .font(.custom("NIXGONM-Vb", size: 18))
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
                     }
+                    .buttonStyle(PressableButtonStyle())
+                    .frame(maxWidth: .infinity)
                 }
                 .foregroundStyle(Color.white)
                 .listRowBackground(Color.black.opacity(0.3))

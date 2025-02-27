@@ -83,22 +83,42 @@ class SharedDataManager {
     func updateSingleEvent(_ event: DDayEvent) {
         var currentData = loadDDayEvents()
         
-        // 업데이트할 이벤트 찾기
-        let eventUUID = UUID(uuidString: "\(event.id)") ?? UUID()
+        // 이벤트 ID 로깅 (디버깅용)
+        let idString = "\(event.id)"
+        print("업데이트 중인 이벤트 ID: \(idString)")
+        print("업데이트 중인 이벤트 제목: \(event.title)")
+        
+        // 모든 위젯 데이터 ID 출력 (디버깅용)
+        print("현재 위젯 데이터의 모든 ID:")
+        currentData.forEach { data in
+            print("  - ID: \(data.id), 제목: \(data.title)")
+        }
+        
+        // ID 문자열이 완전히 일치하지 않더라도 포함되어 있으면 이벤트 찾기
+        let existingIndex = currentData.firstIndex { $0.id.contains(idString) || idString.contains($0.id) }
+        
+        // DDayEventData 객체 생성
         let eventData = DDayEventData(
-            id: eventUUID,
+            id: UUID(uuidString: idString) ?? UUID(),
             title: event.title,
             dDayText: event.dDayText,
             targetDate: event.targetDate
         )
         
-        // 이벤트가 있으면 업데이트, 없으면 추가
-        if let index = currentData.firstIndex(where: { $0.id == eventData.id }) {
+        // 기존 항목이 있으면 업데이트, 없으면 추가
+        if let index = existingIndex {
             currentData[index] = eventData
             print("위젯 데이터 업데이트: \(event.title)")
         } else {
-            currentData.append(eventData)
-            print("위젯 데이터 추가: \(event.title)")
+            // 이미 비슷한 제목의 이벤트가 있는지 확인 (제목으로 중복 확인)
+            let similarTitleIndex = currentData.firstIndex { $0.title == event.title }
+            if let titleIndex = similarTitleIndex {
+                currentData[titleIndex] = eventData
+                print("제목으로 찾은 위젯 데이터 업데이트: \(event.title)")
+            } else {
+                currentData.append(eventData)
+                print("위젯 데이터 추가: \(event.title)")
+            }
         }
         
         // 목표날짜 기준으로 정렬
@@ -148,15 +168,19 @@ class SharedDataManager {
             print("위젯 데이터 새로고침: 현재 앱에 \(allEvents.count)개의 이벤트 있음")
             
             let eventDataArray = allEvents.map { event in
-                DDayEventData(
-                    id: UUID(),
+                let idString = "\(event.id)"
+                let eventUUID = UUID(uuidString: idString) ?? UUID()
+                return DDayEventData(
+                    id: eventUUID,
                     title: event.title,
                     dDayText: event.dDayText,
                     targetDate: event.targetDate
                 )
             }
-            _ = eventDataArray.sorted { $0.targetDate < $1.targetDate }
-            saveDDayEvents(eventDataArray)
+            
+            // 날짜 기준으로 정렬
+            let sortedEvents = eventDataArray.sorted { $0.targetDate < $1.targetDate }
+            saveDDayEvents(sortedEvents)
             
             // 위젯 강제 업데이트
             WidgetCenter.shared.reloadAllTimelines()
