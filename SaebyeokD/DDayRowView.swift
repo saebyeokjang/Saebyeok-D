@@ -11,7 +11,7 @@ import SwiftData
 struct DDayRowView: View {
     let event: DDayEvent
     @Environment(\.modelContext) var modelContext
-
+    
     var body: some View {
         ZStack {
             // 편집 화면으로 네비게이션 (화면에 보이지 않도록 EmptyView 사용)
@@ -19,7 +19,7 @@ struct DDayRowView: View {
                 EmptyView()
             }
             .opacity(0)
-
+            
             HStack {
                 // 왼쪽: 제목과 날짜 표시 (왼쪽 정렬)
                 VStack(alignment: .leading, spacing: 4) {
@@ -51,11 +51,15 @@ struct DDayRowView: View {
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive) {
                     withAnimation {
+                        let eventToDelete = event
                         modelContext.delete(event)
                         do {
                             try modelContext.save()
-                            SharedDataManager.shared.removeSingleEvent(event)
-                            NotificationManager.shared.cancelNotification(for: event)
+                            NotificationManager.shared.cancelNotification(for: eventToDelete)
+                            SharedDataManager.shared.removeSingleEvent(eventToDelete)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                SharedDataManager.shared.refreshAllWidgetData(modelContext: modelContext)
+                            }
                         } catch {
                             print("삭제 실패: \(error)")
                         }

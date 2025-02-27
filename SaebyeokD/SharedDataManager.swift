@@ -57,7 +57,8 @@ class SharedDataManager {
     func saveDDayEvents(_ events: [DDayEventData]) {
         if let defaults = UserDefaults(suiteName: suiteName) {
             do {
-                let data = try JSONEncoder().encode(events)
+                let sortedEvents = events.sorted { $0.targetDate < $1.targetDate }
+                let data = try JSONEncoder().encode(sortedEvents)
                 defaults.set(data, forKey: "ddayList")
                 WidgetCenter.shared.reloadAllTimelines()
             } catch {
@@ -113,22 +114,54 @@ class SharedDataManager {
     func removeSingleEvent(_ event: DDayEvent) {
         var currentData = loadDDayEvents()
         
-        // 이벤트 ID 생성
-        let eventUUID = UUID(uuidString: "\(event.id)") ?? UUID()
-        let eventIDString = eventUUID.uuidString
-        
-        // 해당 이벤트 삭제
+        // 삭제 전 데이터 수
         let initialCount = currentData.count
-        currentData.removeAll { $0.id == eventIDString }
         
-        if currentData.count < initialCount {
-            print("위젯 데이터에서 삭제: \(event.title)")
+        // ID 문자열 직접 출력하여 디버깅
+        let idString = "\(event.id)"
+        print("삭제 중인 이벤트 ID: \(idString)")
+        
+        // 모든 이벤트 ID 출력 (디버깅용)
+        print("현재 위젯 데이터의 모든 ID:")
+        currentData.forEach { data in
+            print("  - ID: \(data.id)")
+        }
+        
+        // UUID 변환 없이 직접 문자열 비교
+        currentData.removeAll { $0.id.contains(idString) }
+        
+        // 6. 삭제 후 정렬
+        currentData.sort { $0.targetDate < $1.targetDate }
+        
+        // 데이터 저장 및 위젯 강제 업데이트
+        saveDDayEvents(currentData)
+        
+        // 위젯 업데이트
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+    
+    func refreshAllWidgetData(modelContext: ModelContext) {
+        do {
+            let fetchDescriptor = FetchDescriptor<DDayEvent>()
+            let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
             
-            // 업데이트된 데이터 저장
-            saveDDayEvents(currentData)
+            print("위젯 데이터 새로고침: 현재 앱에 \(allEvents.count)개의 이벤트 있음")
             
-            // 위젯 업데이트
-            WidgetCenter.shared.reloadTimelines(ofKind: "DDayWidget")
+            let eventDataArray = allEvents.map { event in
+                DDayEventData(
+                    id: UUID(),
+                    title: event.title,
+                    dDayText: event.dDayText,
+                    targetDate: event.targetDate
+                )
+            }
+            let sortedEventDataArray = eventDataArray.sorted { $0.targetDate < $1.targetDate }
+            saveDDayEvents(eventDataArray)
+            
+            // 위젯 강제 업데이트
+            WidgetCenter.shared.reloadAllTimelines()
+        } catch {
+            print("위젯 데이터 전체 새로고침 실패: \(error)")
         }
     }
 }

@@ -38,21 +38,6 @@ struct ContentView: View {
                     .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
                     .padding(.horizontal)
                     .padding(.bottom, 16)
-                    .gesture(
-                        DragGesture()
-                            .onEnded { value in
-                                let threshold: CGFloat = 50
-                                if value.translation.width < -threshold {
-                                    if selectedTab == .dday {
-                                        selectedTab = .settings
-                                    }
-                                } else if value.translation.width > threshold {
-                                    if selectedTab == .settings {
-                                        selectedTab = .dday
-                                    }
-                                }
-                            }
-                    )
                 }
                 .navigationTitle("새벽:D")
                 .navigationBarTitleDisplayMode(.large)
@@ -78,8 +63,13 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            if newPhase == .active, autoDeleteCountdown {
-                deletePastCountdownEvents()
+            if newPhase == .active {
+                // 앱이 활성화될 때마다 위젯 데이터 새로고침
+                SharedDataManager.shared.refreshAllWidgetData(modelContext: modelContext)
+                
+                if autoDeleteCountdown {
+                    deletePastCountdownEvents()
+                }
             }
         }
     }
