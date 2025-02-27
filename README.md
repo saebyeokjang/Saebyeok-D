@@ -39,3 +39,6 @@
 - iOS 18
 - SwiftUI 및 SwiftData 프레임워크 사용
 - WidgetKit을 이용한 위젯 구현
+
+## 개인정보 처리방침
+- https://saebyeokjang.github.io/Saebyeok-D/privacy-policy
