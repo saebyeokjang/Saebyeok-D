@@ -115,7 +115,7 @@ class SharedDataManager {
         var currentData = loadDDayEvents()
         
         // 삭제 전 데이터 수
-        let initialCount = currentData.count
+        _ = currentData.count
         
         // ID 문자열 직접 출력하여 디버깅
         let idString = "\(event.id)"
