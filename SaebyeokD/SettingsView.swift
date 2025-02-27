@@ -100,22 +100,45 @@ struct SettingsView: View {
             
             // 기타 설정 섹션
             VStack(alignment: .leading, spacing: 8) {
-                Text("기타 설정")
+                Text("기타")
                     .font(.custom("NIXGONB-Vb", size: 14))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("준비중")
-                        .font(.custom("NIXGONM-Vb", size: 18))
-                        .foregroundColor(.white)
-                    Text("추가 설정 준비중입니다")
-                        .font(.custom("NIXGONL-Vb", size: 14))
-                        .foregroundColor(.white)
+                
+                // 개발자에게 피드백 보내기
+                Button {
+                    if let url = URL(string: "mailto:dev.saebyeok@gmail.com?subject=새벽:D 피드백") {
+                        openURL(url)
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("개발자에게 피드백 보내기")
+                            .font(.custom("NIXGONM-Vb", size: 18))
+                            .foregroundColor(.white)
+                        Text("건의사항이나 개선점을 알려주세요")
+                            .font(.custom("NIXGONL-Vb", size: 14))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.top, 8)
             }
             .padding(.vertical, 20)
             .padding(.horizontal)
+            
+            Spacer()
+            
+            // 개인정보 처리방침 (하단에 작게 배치)
+            Button {
+                if let url = URL(string: "https://saebyeokjang.github.io/Saebyeok-D/privacy-policy") {
+                    openURL(url)
+                }
+            } label: {
+                Text("개인정보 처리방침")
+                    .font(.custom("NIXGONL-Vb", size: 12))
+                    .foregroundColor(.white)
+                    .padding(.bottom, 12)
+            }
         }
         .frame(maxHeight: .infinity, alignment: .top)
         .scrollContentBackground(.hidden)
