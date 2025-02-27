@@ -154,9 +154,8 @@ struct SettingsView: View {
         
         do {
             let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
-            // targetDate의 자정이 오늘의 자정보다 이전인 경우 삭제 대상으로 간주합니다.
             let pastCountdowns = allEvents.filter { event in
-                // 카운트다운 유형 이벤트만 대상으로 합니다.
+
                 if event.eventType != DDayEventType.countdown { return false }
                 let eventStart = Calendar.current.startOfDay(for: event.targetDate)
                 return eventStart < startOfToday
@@ -167,11 +166,11 @@ struct SettingsView: View {
             for event in pastCountdowns {
                 modelContext.delete(event)
                 NotificationManager.shared.cancelNotification(for: event)
+                SharedDataManager.shared.removeSingleEvent(event)
             }
             
             try modelContext.save()
-            updateWidgetSharedData(modelContext: modelContext)
-            print("삭제 완료: 지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
+            print("지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
         } catch {
             print("지난 카운트다운 이벤트 삭제 실패: \(error)")
         }

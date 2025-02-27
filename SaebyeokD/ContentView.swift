@@ -100,12 +100,12 @@ struct ContentView: View {
             for event in pastCountdowns {
                 modelContext.delete(event)
                 NotificationManager.shared.cancelNotification(for: event)
+                SharedDataManager.shared.removeSingleEvent(event)
             }
             try modelContext.save()
-            updateWidgetSharedData(modelContext: modelContext)
-            print("ContentView - 지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
+            print("지난 카운트다운 이벤트 \(pastCountdowns.count)건 삭제됨")
         } catch {
-            print("ContentView - 지난 카운트다운 이벤트 삭제 실패: \(error)")
+            print("카운트다운 이벤트 삭제 실패: \(error)")
         }
     }
     

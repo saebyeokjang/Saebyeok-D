@@ -71,7 +71,7 @@ struct EditDDayView: View {
                     
                     do {
                         try modelContext.save()
-                        updateWidgetSharedData(modelContext: modelContext)
+                        SharedDataManager.shared.updateSingleEvent(event)
                         if notificationsEnabled {
                             // 알림이 켜진 상태이면 기존 알림을 취소한 후 새로 예약
                             NotificationManager.shared.cancelNotification(for: event)

@@ -70,7 +70,7 @@ struct AddDDayView: View {
                     modelContext.insert(newEvent)
                     do {
                         try modelContext.save()
-                        updateWidgetSharedData(modelContext: modelContext)
+                        SharedDataManager.shared.updateSingleEvent(newEvent)
                         if notificationsEnabled {
                             NotificationManager.shared.scheduleNotification(for: newEvent)
                         } else {

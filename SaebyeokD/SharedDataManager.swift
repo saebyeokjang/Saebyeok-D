@@ -9,24 +9,23 @@ import Foundation
 import WidgetKit
 import SwiftData
 
-// 앱과 위젯에서 공유할 데이터 모델: 목표날짜(targetDate) 추가
 struct DDayEventData: Codable, Identifiable {
     let id: String
     let title: String
     let dDayText: String
     let targetDate: Date
-
+    
     enum CodingKeys: String, CodingKey {
         case id, title, dDayText, targetDate
     }
-
+    
     init(id: UUID, title: String, dDayText: String, targetDate: Date) {
         self.id = id.uuidString
         self.title = title
         self.dDayText = dDayText
         self.targetDate = targetDate
     }
-
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let idString = try container.decode(String.self, forKey: .id)
@@ -39,7 +38,7 @@ struct DDayEventData: Codable, Identifiable {
         self.dDayText = try container.decode(String.self, forKey: .dDayText)
         self.targetDate = try container.decodeIfPresent(Date.self, forKey: .targetDate) ?? Date()
     }
-
+    
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -51,10 +50,10 @@ struct DDayEventData: Codable, Identifiable {
 
 class SharedDataManager {
     static let shared = SharedDataManager()
-    private let suiteName = "group.com.SaebyeokD" // 실제 App Group 식별자
-
+    private let suiteName = "group.com.SaebyeokD"
+    
     private init() {}
-
+    
     func saveDDayEvents(_ events: [DDayEventData]) {
         if let defaults = UserDefaults(suiteName: suiteName) {
             do {
@@ -79,20 +78,71 @@ class SharedDataManager {
             return []
         }
     }
+    
+    func updateSingleEvent(_ event: DDayEvent) {
+        var currentData = loadDDayEvents()
+        
+        // 업데이트할 이벤트 찾기
+        let eventUUID = UUID(uuidString: "\(event.id)") ?? UUID()
+        let eventData = DDayEventData(
+            id: eventUUID,
+            title: event.title,
+            dDayText: event.dDayText,
+            targetDate: event.targetDate
+        )
+        
+        // 이벤트가 있으면 업데이트, 없으면 추가
+        if let index = currentData.firstIndex(where: { $0.id == eventData.id }) {
+            currentData[index] = eventData
+            print("위젯 데이터 업데이트: \(event.title)")
+        } else {
+            currentData.append(eventData)
+            print("위젯 데이터 추가: \(event.title)")
+        }
+        
+        // 목표날짜 기준으로 정렬
+        currentData.sort { $0.targetDate < $1.targetDate }
+        
+        // 업데이트된 데이터 저장
+        saveDDayEvents(currentData)
+        
+        // 특정 위젯만 업데이트
+        WidgetCenter.shared.reloadTimelines(ofKind: "DDayWidget")
+    }
+    
+    func removeSingleEvent(_ event: DDayEvent) {
+        var currentData = loadDDayEvents()
+        
+        // 이벤트 ID 생성
+        let eventUUID = UUID(uuidString: "\(event.id)") ?? UUID()
+        let eventIDString = eventUUID.uuidString
+        
+        // 해당 이벤트 삭제
+        let initialCount = currentData.count
+        currentData.removeAll { $0.id == eventIDString }
+        
+        if currentData.count < initialCount {
+            print("위젯 데이터에서 삭제: \(event.title)")
+            
+            // 업데이트된 데이터 저장
+            saveDDayEvents(currentData)
+            
+            // 위젯 업데이트
+            WidgetCenter.shared.reloadTimelines(ofKind: "DDayWidget")
+        }
+    }
 }
 
-// updateWidgetSharedData: 앱의 전체 이벤트 목록을 다시 불러와 저장하는 함수
+
 func updateWidgetSharedData(modelContext: ModelContext) {
     do {
-        // 모든 DDayEvent 객체를 가져옵니다.
         let fetchDescriptor = FetchDescriptor<DDayEvent>()
         let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
         
-        // 목표날짜(targetDate) 기준 오름차순으로 정렬합니다.
+        // 오름차순으로 정렬
         let sortedEvents = allEvents.sorted { $0.targetDate < $1.targetDate }
         
         let eventDataArray = sortedEvents.map { event in
-            // PersistentIdentifier를 문자열로 변환한 후 UUID로 변환
             let idString = "\(event.id)"
             let eventUUID = UUID(uuidString: idString) ?? UUID()
             return DDayEventData(
@@ -103,8 +153,9 @@ func updateWidgetSharedData(modelContext: ModelContext) {
             )
         }
         SharedDataManager.shared.saveDDayEvents(eventDataArray)
+        print("전체 위젯 데이터 업데이트 완료: \(allEvents.count)개의 이벤트")
     } catch {
-        print("Failed to fetch events for widget update: \(error)")
+        print("위젯 업데이트를 위한 이벤트 가져오기 실패: \(error)")
     }
     WidgetCenter.shared.reloadAllTimelines()
 }

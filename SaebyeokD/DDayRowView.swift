@@ -54,7 +54,7 @@ struct DDayRowView: View {
                         modelContext.delete(event)
                         do {
                             try modelContext.save()
-                            updateWidgetSharedData(modelContext: modelContext)
+                            SharedDataManager.shared.removeSingleEvent(event)
                             NotificationManager.shared.cancelNotification(for: event)
                         } catch {
                             print("삭제 실패: \(error)")
