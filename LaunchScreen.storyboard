@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
-    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <device id="retina6_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
@@ -11,32 +11,36 @@
         <scene sceneID="EHf-IW-A2E">
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                    <view key="view" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="9" translatesAutoresizingMaskIntoConstraints="NO" id="obG-Y5-kRd">
-                                <rect key="frame" x="0.0" y="832" width="393" height="0.0"/>
+                                <rect key="frame" x="0.0" y="936" width="440" height="0.0"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eke-gf-pKs">
-                                <rect key="frame" x="-115" y="-114" width="622" height="1048"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <view clipsSubviews="YES" contentMode="scaleAspectFill" translatesAutoresizingMaskIntoConstraints="NO" id="eke-gf-pKs">
+                                <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                                 <color key="backgroundColor" red="0.19359889629999999" green="0.2347760797" blue="0.50783658030000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="Splash" translatesAutoresizingMaskIntoConstraints="NO" id="aaM-SI-Grx">
-                                <rect key="frame" x="96" y="326" width="200" height="200"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Splash" translatesAutoresizingMaskIntoConstraints="NO" id="aaM-SI-Grx">
+                                <rect key="frame" x="134.66666666666666" y="393" width="170.99999999999997" height="170"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerX" secondItem="obG-Y5-kRd" secondAttribute="centerX" id="5cz-MP-9tL"/>
+                            <constraint firstItem="eke-gf-pKs" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="Eed-zy-Te9"/>
+                            <constraint firstItem="aaM-SI-Grx" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="FF0-wH-V1i"/>
+                            <constraint firstItem="aaM-SI-Grx" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="Jki-PV-r2I"/>
+                            <constraint firstAttribute="trailing" secondItem="eke-gf-pKs" secondAttribute="trailing" id="PkD-B5-yH8"/>
                             <constraint firstItem="obG-Y5-kRd" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" symbolic="YES" id="SfN-ll-jLj"/>
                             <constraint firstAttribute="bottom" secondItem="obG-Y5-kRd" secondAttribute="bottom" constant="20" id="Y44-ml-fuU"/>
+                            <constraint firstItem="eke-gf-pKs" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="lzP-ZG-CdX"/>
+                            <constraint firstAttribute="bottom" secondItem="eke-gf-pKs" secondAttribute="bottom" id="r1q-bS-DzS"/>
                         </constraints>
                     </view>
                 </viewController>
