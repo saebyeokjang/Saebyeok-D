@@ -91,18 +91,17 @@ struct Provider: TimelineProvider {
         let currentDate = Date()
         
         var entries: [DDayEntry] = []
+        let calendar = Calendar.current
+        
+        let startOfToday = calendar.startOfDay(for: currentDate)
+        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
         
         let currentEntry = DDayEntry(date: currentDate, events: events)
         entries.append(currentEntry)
         
-        let calendar = Calendar.current
-        let startOfToday = calendar.startOfDay(for: currentDate)
-        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
-        
         let midnightEvents = events.map { event -> DDayEventData in
-            let startOfMidnight = calendar.startOfDay(for: nextMidnight)
             let startOfTarget = calendar.startOfDay(for: event.targetDate)
-            let diff = calendar.dateComponents([.day], from: startOfMidnight, to: startOfTarget).day ?? 0
+            let diff = calendar.dateComponents([.day], from: nextMidnight, to: startOfTarget).day ?? 0
             
             let newDDayText: String
             switch diff {
@@ -125,7 +124,34 @@ struct Provider: TimelineProvider {
         let midnightEntry = DDayEntry(date: nextMidnight, events: midnightEvents)
         entries.append(midnightEntry)
 
-        let timeline = Timeline(entries: entries, policy: .after(nextMidnight))
+        let dayAfterTomorrowMidnight = calendar.date(byAdding: .day, value: 2, to: startOfToday)!
+        let dayAfterTomorrowEvents = events.map { event -> DDayEventData in
+            let startOfTarget = calendar.startOfDay(for: event.targetDate)
+            let diff = calendar.dateComponents([.day], from: dayAfterTomorrowMidnight, to: startOfTarget).day ?? 0
+            
+            let newDDayText: String
+            switch diff {
+            case 0:
+                newDDayText = "오늘"
+            case 1...:
+                newDDayText = "D-\(diff)"
+            default:
+                newDDayText = "\(-diff + 1)일"
+            }
+            
+            return DDayEventData(
+                id: UUID(uuidString: event.id) ?? UUID(),
+                title: event.title,
+                dDayText: newDDayText,
+                targetDate: event.targetDate
+            )
+        }
+        
+        let dayAfterTomorrowEntry = DDayEntry(date: dayAfterTomorrowMidnight, events: dayAfterTomorrowEvents)
+        entries.append(dayAfterTomorrowEntry)
+        
+        let timeline = Timeline(entries: entries, policy: .atEnd)
+        
         completion(timeline)
     }
 }
