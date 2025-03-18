@@ -4,8 +4,6 @@
 <dict>
 	<key>NSExtension</key>
 	<dict>
-		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.widgetkit-extension</string>
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionPointVersion</key>
@@ -13,6 +11,8 @@
 			<key>WidgetBackgroundRefreshPolicy</key>
 			<string>Always</string>
 		</dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.widgetkit-extension</string>
 	</dict>
 	<key>UIAppFonts</key>
 	<array>

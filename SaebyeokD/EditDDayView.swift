@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 struct PressableButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -83,6 +84,9 @@ struct EditDDayView: View {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                 SharedDataManager.shared.refreshAllWidgetData(modelContext: modelContext)
                             }
+                            
+                            // 위젯 타임라인 강제 갱신
+                            WidgetCenter.shared.reloadAllTimelines()
                         } catch {
                             print("삭제 실패: \(error)")
                         }
@@ -106,7 +110,10 @@ struct EditDDayView: View {
                         
                         do {
                             try modelContext.save()
+                            
+                            // 위젯 데이터 즉시 업데이트
                             SharedDataManager.shared.updateSingleEvent(event)
+                            
                             if notificationsEnabled {
                                 // 알림이 켜진 상태이면 기존 알림을 취소한 후 새로 예약
                                 NotificationManager.shared.cancelNotification(for: event)
@@ -115,6 +122,9 @@ struct EditDDayView: View {
                                 // 알림이 꺼진 상태이면 알림 취소
                                 NotificationManager.shared.cancelNotification(for: event)
                             }
+                            
+                            // 위젯 타임라인 강제 갱신
+                            WidgetCenter.shared.reloadAllTimelines()
                         } catch {
                             print("저장 실패: \(error)")
                         }

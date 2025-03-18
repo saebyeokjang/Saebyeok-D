@@ -12,10 +12,13 @@ import UserNotifications
 struct SettingsView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
     @AppStorage("autoDeleteCountdown") private var autoDeleteCountdown: Bool = false
+    @AppStorage("sortOption") private var sortOption: String = SortOption.targetDateAscending.rawValue
     
     @Environment(\.modelContext) var modelContext
     @Environment(\.openURL) var openURL
     @Environment(\.scenePhase) private var scenePhase
+    
+    @State private var showingSortOptionSheet = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -23,7 +26,32 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("디데이 설정")
                     .font(.custom("NIXGONB-Vb", size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(.yellow)
+                
+                // 정렬 설정 버튼 추가
+                Button {
+                    showingSortOptionSheet = true
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("정렬 방식")
+                                .font(.custom("NIXGONM-Vb", size: 18))
+                                .foregroundColor(.white)
+                            Text(SortOption(rawValue: sortOption)?.displayName ?? "날짜 오름차순")
+                                .font(.custom("NIXGONL-Vb", size: 14))
+                                .foregroundColor(.white)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.white)
+                    }
+                    .padding(.vertical, 8)
+                }
+                .sheet(isPresented: $showingSortOptionSheet) {
+                    SortOptionView(selectedOption: $sortOption)
+                        .presentationDetents([.medium])
+                }
+                
                 Toggle(isOn: $autoDeleteCountdown) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("지나간 카운트다운 자동 삭제")
@@ -49,7 +77,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("알림 설정")
                     .font(.custom("NIXGONB-Vb", size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(.yellow)
                 Toggle(isOn: $notificationsEnabled) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("디데이 알림")
@@ -79,7 +107,8 @@ struct SettingsView: View {
                 )
                 .onChange(of: notificationsEnabled) { newValue, _ in
                     Task { @MainActor in
-                        if newValue {UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                        if newValue {
+                            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
                             UNUserNotificationCenter.current().removeAllDeliveredNotifications()
                             print("알림 취소됨")
                         } else {
@@ -102,7 +131,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("기타")
                     .font(.custom("NIXGONB-Vb", size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(.yellow)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // 개발자에게 피드백 보내기
@@ -167,7 +196,7 @@ struct SettingsView: View {
     // MARK: - Private Methods
     
     private func deletePastCountdownEvents() {
-        // autoDeleteCountdown이 true일 때만 진행 (이 부분은 필요에 따라 제거 가능)
+        // autoDeleteCountdown이 true일 때만 진행
         if !autoDeleteCountdown { return }
         
         let now = Date()
@@ -209,6 +238,55 @@ struct SettingsView: View {
             print("저장된 알림 예약 완료")
         } catch {
             print("알림 예약 실패: \(error)")
+        }
+    }
+}
+
+// 정렬 옵션 선택 시트 뷰
+struct SortOptionView: View {
+    @Binding var selectedOption: String
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                // 배경 색상을 검정색으로 변경
+                Color.black.opacity(0.9).ignoresSafeArea()
+                
+                List {
+                    ForEach(SortOption.allCases, id: \.self) { option in
+                        Button {
+                            selectedOption = option.rawValue
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Image(systemName: option.iconName)
+                                    .foregroundColor(.white)
+                                Text(option.displayName)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                if selectedOption == option.rawValue {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.yellow)
+                                }
+                            }
+                        }
+                        .listRowBackground(Color.black.opacity(0.4))
+                    }
+                }
+                .listStyle(PlainListStyle())
+                .scrollContentBackground(.hidden)
+            }
+            .navigationTitle("정렬 방식 선택")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("닫기") {
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
+                }
+            }
         }
     }
 }

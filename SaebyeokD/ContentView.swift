@@ -13,6 +13,7 @@ struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @AppStorage("autoDeleteCountdown") private var autoDeleteCountdown: Bool = false
     @Environment(\.scenePhase) private var scenePhase
+    @State private var midnightUpdateTimer: Timer?
     
     enum Tab: String, CaseIterable {
         case dday = "디데이"
@@ -43,6 +44,14 @@ struct ContentView: View {
                 .navigationBarTitleDisplayMode(.large)
                 .onAppear {
                     setupNavigationBarAppearance()
+                    setupMidnightTimer()
+                    
+                    if autoDeleteCountdown {
+                        deletePastCountdownEvents()
+                    }
+                    
+                    // 앱 시작 시 위젯 데이터 새로고침
+                    SharedDataManager.shared.refreshAllWidgetData(modelContext: modelContext)
                 }
             }
             .toolbar {
@@ -57,20 +66,54 @@ struct ContentView: View {
                 }
             }
         }
-        .onAppear {
-            if autoDeleteCountdown {
-                deletePastCountdownEvents()
-            }
-        }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
                 // 앱이 활성화될 때마다 위젯 데이터 새로고침
                 SharedDataManager.shared.refreshAllWidgetData(modelContext: modelContext)
                 
+                // 타이머 재설정
+                setupMidnightTimer()
+                
                 if autoDeleteCountdown {
                     deletePastCountdownEvents()
                 }
+            } else if newPhase == .background {
+                // 앱이 백그라운드로 갔을 때 타이머 무효화 (배터리 절약)
+                midnightUpdateTimer?.invalidate()
             }
+        }
+        .onDisappear {
+            // 뷰가 사라질 때 타이머 정리
+            midnightUpdateTimer?.invalidate()
+        }
+    }
+    
+    // 자정 타이머 설정 함수
+    private func setupMidnightTimer() {
+        // 기존 타이머가 있다면 무효화
+        midnightUpdateTimer?.invalidate()
+        
+        // 다음 자정 시간 계산
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday) else { return }
+        
+        // 자정까지 남은 시간(초)
+        let timeInterval = nextMidnight.timeIntervalSince(now)
+        
+        // 타이머 설정
+        midnightUpdateTimer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: false) { _ in
+            // 위젯 데이터 새로고침
+            SharedDataManager.shared.refreshAllWidgetData(modelContext: self.modelContext)
+            
+            // 자동 삭제 기능이 활성화된 경우 만료된 이벤트 삭제
+            if self.autoDeleteCountdown {
+                self.deletePastCountdownEvents()
+            }
+            
+            // 다음 자정을 위한 타이머 재설정
+            self.setupMidnightTimer()
         }
     }
     

@@ -52,13 +52,107 @@ class SharedDataManager {
     static let shared = SharedDataManager()
     private let suiteName = "group.com.SaebyeokD"
     
-    private init() {}
+    private init() {
+        // 초기화 시 주기적 위젯 업데이트 타이머 설정
+        setupPeriodicWidgetUpdate()
+    }
     
-    func saveDDayEvents(_ events: [DDayEventData]) {
+    // 주기적인 위젯 업데이트 타이머 설정 (1시간마다)
+    private func setupPeriodicWidgetUpdate() {
+        Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            // 현재 저장된 데이터를 불러와서 D-day 텍스트 갱신 후 저장
+            var currentData = self.loadDDayEvents()
+            
+            let now = Date()
+            let calendar = Calendar.current
+            let startOfToday = calendar.startOfDay(for: now)
+            
+            // 각 이벤트의 D-day 텍스트 갱신
+            for index in 0..<currentData.count {
+                let event = currentData[index]
+                let startOfTarget = calendar.startOfDay(for: event.targetDate)
+                let diff = calendar.dateComponents([.day], from: startOfToday, to: startOfTarget).day ?? 0
+                
+                var newDDayText: String
+                switch diff {
+                case 0:
+                    newDDayText = "오늘"
+                case 1...:
+                    newDDayText = "D-\(diff)"
+                default:
+                    newDDayText = "\(-diff + 1)일"
+                }
+                
+                // 새로운 이벤트 데이터로 교체
+                let updatedEvent = DDayEventData(
+                    id: UUID(uuidString: event.id) ?? UUID(),
+                    title: event.title,
+                    dDayText: newDDayText,
+                    targetDate: event.targetDate
+                )
+                
+                currentData[index] = updatedEvent
+            }
+            
+            // 업데이트된 데이터 저장 (앱의 정렬 방식 적용)
+            self.saveDDayEvents(currentData, preserveOrder: true)
+            
+            // 위젯 타임라인 강제 갱신
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+    
+    // 정렬 옵션을 적용하거나 무시하는 파라미터 추가
+    func saveDDayEvents(_ events: [DDayEventData], preserveOrder: Bool = false) {
         if let defaults = UserDefaults(suiteName: suiteName) {
             do {
-                let sortedEvents = events.sorted { $0.targetDate < $1.targetDate }
-                let data = try JSONEncoder().encode(sortedEvents)
+                var eventsToSave = events
+                
+                // preserveOrder가 true이면 정렬하지 않고 기존 순서 유지
+                if !preserveOrder {
+                    // 앱에서 사용 중인 정렬 방식 가져오기
+                    let sortOptionKey = UserDefaults.standard.string(forKey: "sortOption") ?? SortOption.targetDateAscending.rawValue
+                    let sortOption = SortOption(rawValue: sortOptionKey) ?? .targetDateAscending
+                    
+                    switch sortOption {
+                    case .targetDateAscending:
+                        eventsToSave.sort { $0.targetDate < $1.targetDate }
+                    case .targetDateDescending:
+                        eventsToSave.sort { $0.targetDate > $1.targetDate }
+                    case .userDefined:
+                        // 사용자 지정 순서 불러오기
+                        if let savedOrder = UserDefaults.standard.array(forKey: "userDefinedOrder") as? [String] {
+                            // ID 배열을 이용해 정렬
+                            var sortedEvents: [DDayEventData] = []
+                            
+                            // 저장된 순서에 있는 이벤트 먼저 추가
+                            for id in savedOrder {
+                                if let event = eventsToSave.first(where: { $0.id.contains(id) || id.contains($0.id) }) {
+                                    sortedEvents.append(event)
+                                }
+                            }
+                            
+                            // 나머지 새로 추가된 이벤트는 날짜순으로 뒤에 추가
+                            let remainingEvents = eventsToSave.filter { event in
+                                !sortedEvents.contains { $0.id == event.id }
+                            }.sorted { $0.targetDate < $1.targetDate }
+                            
+                            sortedEvents.append(contentsOf: remainingEvents)
+                            eventsToSave = sortedEvents
+                        } else {
+                            // 저장된 순서가 없으면 기본적으로 날짜 오름차순
+                            eventsToSave.sort { $0.targetDate < $1.targetDate }
+                        }
+                    }
+                }
+                
+                // 저장하기 전에 현재 사용 중인 정렬 방식도 같이 저장
+                let currentSortOption = UserDefaults.standard.string(forKey: "sortOption") ?? SortOption.targetDateAscending.rawValue
+                defaults.set(currentSortOption, forKey: "widgetSortOption")
+                
+                let data = try JSONEncoder().encode(eventsToSave)
                 defaults.set(data, forKey: "ddayList")
                 WidgetCenter.shared.reloadAllTimelines()
             } catch {
@@ -80,6 +174,14 @@ class SharedDataManager {
         }
     }
     
+    // 위젯이 사용할 정렬 옵션 가져오기
+    func getWidgetSortOption() -> String {
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return SortOption.targetDateAscending.rawValue
+        }
+        return defaults.string(forKey: "widgetSortOption") ?? SortOption.targetDateAscending.rawValue
+    }
+    
     func updateSingleEvent(_ event: DDayEvent) {
         var currentData = loadDDayEvents()
         
@@ -94,6 +196,9 @@ class SharedDataManager {
             print("  - ID: \(data.id), 제목: \(data.title)")
         }
         
+        // 현재 시간 기준으로 계산된 D-day 텍스트
+        let dDayText = event.calculateDDayText(from: Date())
+        
         // ID 문자열이 완전히 일치하지 않더라도 포함되어 있으면 이벤트 찾기
         let existingIndex = currentData.firstIndex { $0.id.contains(idString) || idString.contains($0.id) }
         
@@ -101,7 +206,7 @@ class SharedDataManager {
         let eventData = DDayEventData(
             id: UUID(uuidString: idString) ?? UUID(),
             title: event.title,
-            dDayText: event.dDayText,
+            dDayText: dDayText,
             targetDate: event.targetDate
         )
         
@@ -121,10 +226,7 @@ class SharedDataManager {
             }
         }
         
-        // 목표날짜 기준으로 정렬
-        currentData.sort { $0.targetDate < $1.targetDate }
-        
-        // 업데이트된 데이터 저장
+        // 현재 앱의 정렬 방식에 따라 정렬 적용
         saveDDayEvents(currentData)
         
         // 특정 위젯만 업데이트
@@ -150,10 +252,7 @@ class SharedDataManager {
         // UUID 변환 없이 직접 문자열 비교
         currentData.removeAll { $0.id.contains(idString) }
         
-        // 6. 삭제 후 정렬
-        currentData.sort { $0.targetDate < $1.targetDate }
-        
-        // 데이터 저장 및 위젯 강제 업데이트
+        // 삭제 후 저장 (앱의 정렬 방식 적용)
         saveDDayEvents(currentData)
         
         // 위젯 업데이트
@@ -162,25 +261,61 @@ class SharedDataManager {
     
     func refreshAllWidgetData(modelContext: ModelContext) {
         do {
+            // AppStorage에서 정렬 옵션 가져오기
+            let sortOptionKey = UserDefaults.standard.string(forKey: "sortOption") ?? SortOption.targetDateAscending.rawValue
+            let sortOption = SortOption(rawValue: sortOptionKey) ?? .targetDateAscending
+            
             let fetchDescriptor = FetchDescriptor<DDayEvent>()
             let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
             
             print("위젯 데이터 새로고침: 현재 앱에 \(allEvents.count)개의 이벤트 있음")
             
-            let eventDataArray = allEvents.map { event in
+            let currentDate = Date()
+            
+            // 정렬된 이벤트 생성
+            var sortedEvents = allEvents
+            
+            // 앱의 정렬 옵션에 따라 이벤트 정렬
+            switch sortOption {
+            case .targetDateAscending:
+                sortedEvents.sort { $0.targetDate < $1.targetDate }
+            case .targetDateDescending:
+                sortedEvents.sort { $0.targetDate > $1.targetDate }
+            case .userDefined:
+                // 사용자 지정 순서 불러오기
+                if let savedOrder = UserDefaults.standard.array(forKey: "userDefinedOrder") as? [String] {
+                    var sortedByUserOrder: [DDayEvent] = []
+                    
+                    // 저장된 순서에 있는 이벤트 먼저 추가
+                    for id in savedOrder {
+                        if let event = allEvents.first(where: { "\($0.id)".contains(id) || id.contains("\($0.id)") }) {
+                            sortedByUserOrder.append(event)
+                        }
+                    }
+                    
+                    // 나머지 새로 추가된 이벤트는 날짜순으로 뒤에 추가
+                    let remainingEvents = allEvents.filter { event in
+                        !sortedByUserOrder.contains { $0.id == event.id }
+                    }.sorted { $0.targetDate < $1.targetDate }
+                    
+                    sortedByUserOrder.append(contentsOf: remainingEvents)
+                    sortedEvents = sortedByUserOrder
+                }
+            }
+            
+            let eventDataArray = sortedEvents.map { event in
                 let idString = "\(event.id)"
                 let eventUUID = UUID(uuidString: idString) ?? UUID()
                 return DDayEventData(
                     id: eventUUID,
                     title: event.title,
-                    dDayText: event.dDayText,
+                    dDayText: event.calculateDDayText(from: currentDate),
                     targetDate: event.targetDate
                 )
             }
             
-            // 날짜 기준으로 정렬
-            let sortedEvents = eventDataArray.sorted { $0.targetDate < $1.targetDate }
-            saveDDayEvents(sortedEvents)
+            // 앱의 현재 정렬 방식으로 이벤트 저장 (위젯용)
+            saveDDayEvents(eventDataArray, preserveOrder: true)
             
             // 위젯 강제 업데이트
             WidgetCenter.shared.reloadAllTimelines()
@@ -193,23 +328,57 @@ class SharedDataManager {
 
 func updateWidgetSharedData(modelContext: ModelContext) {
     do {
+        // 앱의 정렬 옵션 적용
+        let sortOptionKey = UserDefaults.standard.string(forKey: "sortOption") ?? SortOption.targetDateAscending.rawValue
+        let sortOption = SortOption(rawValue: sortOptionKey) ?? .targetDateAscending
+        
         let fetchDescriptor = FetchDescriptor<DDayEvent>()
         let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
         
-        // 오름차순으로 정렬
-        let sortedEvents = allEvents.sorted { $0.targetDate < $1.targetDate }
+        // 앱의 정렬 방식에 따라 정렬
+        var sortedEvents: [DDayEvent]
         
+        switch sortOption {
+        case .targetDateAscending:
+            sortedEvents = allEvents.sorted { $0.targetDate < $1.targetDate }
+        case .targetDateDescending:
+            sortedEvents = allEvents.sorted { $0.targetDate > $1.targetDate }
+        case .userDefined:
+            // 사용자 지정 순서 불러오기
+            if let savedOrder = UserDefaults.standard.array(forKey: "userDefinedOrder") as? [String] {
+                var sortedByUserOrder: [DDayEvent] = []
+                
+                // 저장된 순서에 있는 이벤트 먼저 추가
+                for id in savedOrder {
+                    if let event = allEvents.first(where: { "\($0.id)".contains(id) || id.contains("\($0.id)") }) {
+                        sortedByUserOrder.append(event)
+                    }
+                }
+                
+                // 나머지 새로 추가된 이벤트는 날짜순으로 뒤에 추가
+                let remainingEvents = allEvents.filter { event in
+                    !sortedByUserOrder.contains { $0.id == event.id }
+                }.sorted { $0.targetDate < $1.targetDate }
+                
+                sortedByUserOrder.append(contentsOf: remainingEvents)
+                sortedEvents = sortedByUserOrder
+            } else {
+                sortedEvents = allEvents.sorted { $0.targetDate < $1.targetDate }
+            }
+        }
+        
+        let currentDate = Date()
         let eventDataArray = sortedEvents.map { event in
             let idString = "\(event.id)"
             let eventUUID = UUID(uuidString: idString) ?? UUID()
             return DDayEventData(
                 id: eventUUID,
                 title: event.title,
-                dDayText: event.dDayText,
+                dDayText: event.calculateDDayText(from: currentDate),
                 targetDate: event.targetDate
             )
         }
-        SharedDataManager.shared.saveDDayEvents(eventDataArray)
+        SharedDataManager.shared.saveDDayEvents(eventDataArray, preserveOrder: true)
         print("전체 위젯 데이터 업데이트 완료: \(allEvents.count)개의 이벤트")
     } catch {
         print("위젯 업데이트를 위한 이벤트 가져오기 실패: \(error)")

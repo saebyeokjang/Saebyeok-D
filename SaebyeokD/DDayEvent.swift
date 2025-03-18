@@ -21,8 +21,12 @@ class DDayEvent {
     }
     
     var dDayText: String {
+        calculateDDayText(from: Date())
+    }
+    
+    func calculateDDayText(from date: Date) -> String {
         let calendar = Calendar.current
-        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfToday = calendar.startOfDay(for: date)
         let startOfTarget = calendar.startOfDay(for: targetDate)
         let diff = calendar.dateComponents([.day], from: startOfToday, to: startOfTarget).day ?? 0
         

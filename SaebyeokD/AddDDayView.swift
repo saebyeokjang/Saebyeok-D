@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 struct AddDDayView: View {
     @Environment(\.dismiss) var dismiss
@@ -70,12 +71,18 @@ struct AddDDayView: View {
                     modelContext.insert(newEvent)
                     do {
                         try modelContext.save()
+                        
+                        // 위젯 데이터 즉시 업데이트
                         SharedDataManager.shared.updateSingleEvent(newEvent)
+                        
                         if notificationsEnabled {
                             NotificationManager.shared.scheduleNotification(for: newEvent)
                         } else {
                             NotificationManager.shared.cancelNotification(for: newEvent)
                         }
+                        
+                        // 위젯 타임라인 즉시 갱신
+                        WidgetCenter.shared.reloadAllTimelines()
                     } catch {
                         print("저장 실패: \(error)")
                         showErrorAlert = true

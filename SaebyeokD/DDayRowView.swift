@@ -11,10 +11,13 @@ import SwiftData
 struct DDayRowView: View {
     let event: DDayEvent
     @Environment(\.modelContext) var modelContext
+    @State private var currentDate = Date()
+    
+    // 1시간마다 날짜 업데이트를 위한 타이머
+    let timer = Timer.publish(every: 3600, on: .main, in: .common).autoconnect()
     
     var body: some View {
         ZStack {
-            // 편집 화면으로 네비게이션 (화면에 보이지 않도록 EmptyView 사용)
             NavigationLink(destination: EditDDayView(event: event)) {
                 EmptyView()
             }
@@ -35,8 +38,7 @@ struct DDayRowView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // 오른쪽: D-day 텍스트 표시
-                Text(event.dDayText)
+                Text(event.calculateDDayText(from: currentDate))
                     .font(.custom("NIXGONM-Vb", size: 28))
                     .foregroundColor(.white)
                     .kerning(-2)
@@ -47,7 +49,7 @@ struct DDayRowView: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.black.opacity(0.3))
             )
-            // 스와이프 삭제 액션: 삭제 후 updateDDayWidget(with:) 함수 호출
+            // 스와이프 삭제
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive) {
                     withAnimation {
@@ -69,10 +71,12 @@ struct DDayRowView: View {
                 }
                 .tint(Color(UIColor.darkGray))
             }
+            .onReceive(timer) { _ in
+                self.currentDate = Date()
+            }
         }
     }
     
-    // 날짜를 "yyyy.MM.dd(EEE)" 형식의 문자열로 변환하는 함수
     func formattedDate(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")

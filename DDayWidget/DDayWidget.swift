@@ -55,12 +55,7 @@ struct DDayEntry: TimelineEntry {
 func loadSharedDDayEvents() -> [DDayEventData] {
     guard let defaults = UserDefaults(suiteName: "group.com.SaebyeokD"),
           let data = defaults.data(forKey: "ddayList") else {
-        // 데이터가 없으면 더미 데이터
-        return [
-            DDayEventData(id: UUID(), title: "Event 1", dDayText: "D-5", targetDate: Date()),
-            DDayEventData(id: UUID(), title: "Event 2", dDayText: "D-10", targetDate: Date()),
-            DDayEventData(id: UUID(), title: "Event 3", dDayText: "D-15", targetDate: Date())
-        ]
+        return []
     }
     
     do {
@@ -72,19 +67,44 @@ func loadSharedDDayEvents() -> [DDayEventData] {
     }
 }
 
+// D-day 텍스트를 새로 계산하는 함수
+func calculateDDayText(targetDate: Date, from currentDate: Date) -> String {
+    let calendar = Calendar.current
+    let startOfToday = calendar.startOfDay(for: currentDate)
+    let startOfTarget = calendar.startOfDay(for: targetDate)
+    let diff = calendar.dateComponents([.day], from: startOfToday, to: startOfTarget).day ?? 0
+    
+    switch diff {
+    case 0:
+        return "오늘"
+    case 1...:
+        return "D-\(diff)"
+    default:
+        return "\(-diff + 1)일"
+    }
+}
+
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> DDayEntry {
-        DDayEntry(date: Date(), events: [
-            DDayEventData(id: UUID(), title: "Event 1", dDayText: "D-5", targetDate: Date()),
-            DDayEventData(id: UUID(), title: "Event 2", dDayText: "D-10", targetDate: Date()),
-            DDayEventData(id: UUID(), title: "Event 3", dDayText: "D-15", targetDate: Date())
-        ])
+        // 플레이스홀더 데이터가 비어있는 경우 기본 더미 데이터 제공
+        let dummyEvents = [
+            DDayEventData(id: UUID(), title: "이벤트", dDayText: "D-5", targetDate: Date())
+        ]
+        return DDayEntry(date: Date(), events: dummyEvents)
     }
     
     func getSnapshot(in context: Context, completion: @escaping (DDayEntry) -> Void) {
-            let entry = DDayEntry(date: Date(), events: loadSharedDDayEvents())
-            completion(entry)
+        // 스냅샷용 데이터 로드
+        var events = loadSharedDDayEvents()
+        if events.isEmpty && !context.isPreview {
+            // 실제 환경에서만 더미 데이터 사용 (미리보기에서는 빈 상태 보여주기)
+            events = [
+                DDayEventData(id: UUID(), title: "이벤트", dDayText: "D-5", targetDate: Date())
+            ]
         }
+        let entry = DDayEntry(date: Date(), events: events)
+        completion(entry)
+    }
     
     func getTimeline(in context: Context, completion: @escaping (Timeline<DDayEntry>) -> Void) {
         let events = loadSharedDDayEvents()
@@ -93,64 +113,59 @@ struct Provider: TimelineProvider {
         var entries: [DDayEntry] = []
         let calendar = Calendar.current
         
+        // 오늘 자정 계산
         let startOfToday = calendar.startOfDay(for: currentDate)
-        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
         
-        let currentEntry = DDayEntry(date: currentDate, events: events)
+        // 현재 시간 기준 엔트리 추가
+        let currentEvents = events.map { event in
+            // D-day 텍스트를 현재 시간 기준으로 다시 계산
+            let newDDayText = calculateDDayText(targetDate: event.targetDate, from: currentDate)
+            
+            return DDayEventData(
+                id: UUID(uuidString: event.id) ?? UUID(),
+                title: event.title,
+                dDayText: newDDayText,
+                targetDate: event.targetDate
+            )
+        }
+        let currentEntry = DDayEntry(date: currentDate, events: currentEvents)
         entries.append(currentEntry)
         
-        let midnightEvents = events.map { event -> DDayEventData in
-            let startOfTarget = calendar.startOfDay(for: event.targetDate)
-            let diff = calendar.dateComponents([.day], from: nextMidnight, to: startOfTarget).day ?? 0
-            
-            let newDDayText: String
-            switch diff {
-            case 0:
-                newDDayText = "오늘"
-            case 1...:
-                newDDayText = "D-\(diff)"
-            default:
-                newDDayText = "\(-diff + 1)일"
+        // 다음 자정에 업데이트할 엔트리 추가
+        if let nextMidnight = calendar.date(byAdding: .day, value: 1, to: startOfToday) {
+            let midnightEvents = events.map { event in
+                let newDDayText = calculateDDayText(targetDate: event.targetDate, from: nextMidnight)
+                
+                return DDayEventData(
+                    id: UUID(uuidString: event.id) ?? UUID(),
+                    title: event.title,
+                    dDayText: newDDayText,
+                    targetDate: event.targetDate
+                )
             }
-            
-            return DDayEventData(
-                id: UUID(uuidString: event.id) ?? UUID(),
-                title: event.title,
-                dDayText: newDDayText,
-                targetDate: event.targetDate
-            )
+            let midnightEntry = DDayEntry(date: nextMidnight, events: midnightEvents)
+            entries.append(midnightEntry)
         }
         
-        let midnightEntry = DDayEntry(date: nextMidnight, events: midnightEvents)
-        entries.append(midnightEntry)
-
-        let dayAfterTomorrowMidnight = calendar.date(byAdding: .day, value: 2, to: startOfToday)!
-        let dayAfterTomorrowEvents = events.map { event -> DDayEventData in
-            let startOfTarget = calendar.startOfDay(for: event.targetDate)
-            let diff = calendar.dateComponents([.day], from: dayAfterTomorrowMidnight, to: startOfTarget).day ?? 0
-            
-            let newDDayText: String
-            switch diff {
-            case 0:
-                newDDayText = "오늘"
-            case 1...:
-                newDDayText = "D-\(diff)"
-            default:
-                newDDayText = "\(-diff + 1)일"
+        // 다음 시간 업데이트 엔트리 추가 (1시간마다 업데이트)
+        if let nextHour = calendar.date(byAdding: .hour, value: 1, to: currentDate) {
+            let hourlyEvents = events.map { event in
+                let newDDayText = calculateDDayText(targetDate: event.targetDate, from: nextHour)
+                
+                return DDayEventData(
+                    id: UUID(uuidString: event.id) ?? UUID(),
+                    title: event.title,
+                    dDayText: newDDayText,
+                    targetDate: event.targetDate
+                )
             }
-            
-            return DDayEventData(
-                id: UUID(uuidString: event.id) ?? UUID(),
-                title: event.title,
-                dDayText: newDDayText,
-                targetDate: event.targetDate
-            )
+            let hourlyEntry = DDayEntry(date: nextHour, events: hourlyEvents)
+            entries.append(hourlyEntry)
         }
         
-        let dayAfterTomorrowEntry = DDayEntry(date: dayAfterTomorrowMidnight, events: dayAfterTomorrowEvents)
-        entries.append(dayAfterTomorrowEntry)
-        
-        let timeline = Timeline(entries: entries, policy: .atEnd)
+        // 다음 업데이트 정책 설정
+        let nextUpdate = calendar.date(byAdding: .hour, value: 1, to: currentDate) ?? Date()
+        let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
         
         completion(timeline)
     }
