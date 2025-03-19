@@ -23,12 +23,15 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             // 디데이 설정 섹션
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("디데이 설정")
                     .font(.custom("NIXGONB-Vb", size: 14))
                     .foregroundColor(.yellow)
+                    .padding(.horizontal)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
                 
-                // 정렬 설정 버튼 추가
+                // 정렬 설정
                 Button {
                     showingSortOptionSheet = true
                 } label: {
@@ -45,12 +48,16 @@ struct SettingsView: View {
                         Image(systemName: "chevron.right")
                             .foregroundColor(.white)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
                 }
                 .sheet(isPresented: $showingSortOptionSheet) {
-                    SortOptionView(selectedOption: $sortOption)
-                        .presentationDetents([.medium])
-                }
+                                    SortOptionView(selectedOption: $sortOption)
+                                        .presentationDetents([.medium])
+                                }
+                
+                Divider()
+                    .background(Color.white.opacity(0.3))
                 
                 Toggle(isOn: $autoDeleteCountdown) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -64,20 +71,24 @@ struct SettingsView: View {
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
+                .padding(.horizontal)
+                .padding(.vertical, 12)
             }
-            .padding(.vertical, 20)
-            .padding(.horizontal)
             
+            // 섹션 구분 (굵은 선)
             Divider()
-                .frame(height: 1)
-                .background(Color.white)
-                .padding(.horizontal, 16)
+                .frame(height: 5)
+                .background(Color.white.opacity(0.1))
             
             // 알림 설정 섹션
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("알림 설정")
                     .font(.custom("NIXGONB-Vb", size: 14))
                     .foregroundColor(.yellow)
+                    .padding(.horizontal)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
+                
                 Toggle(isOn: $notificationsEnabled) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("디데이 알림")
@@ -90,49 +101,47 @@ struct SettingsView: View {
                     .padding(.top, 8)
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .yellow))
-                // 즉시 탭 제스처로 권한 상태 확인: 권한 거부 또는 미결정이면 설정 앱으로 이동 후 토글은 off로 복원
-                .simultaneousGesture(
-                    TapGesture().onEnded {
-                        Task { @MainActor in
-                            let settings = await UNUserNotificationCenter.current().notificationSettings()
-                            if settings.authorizationStatus == .denied || settings.authorizationStatus == .notDetermined {
-                                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                                    openURL(settingsUrl)
-                                }
-                                notificationsEnabled = false
-                                print("권한 없음 - 토글 off로 복원")
-                            }
-                        }
-                    }
-                )
-                .onChange(of: notificationsEnabled) { newValue, _ in
-                    Task { @MainActor in
-                        if newValue {
-                            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-                            UNUserNotificationCenter.current().removeAllDeliveredNotifications()
-                            print("알림 취소됨")
-                        } else {
-                            // 토글이 on일 때, 저장된 알림을 예약
-                            scheduleAllNotifications()
-                            print("알림 예약됨")
-                        }
-                    }
-                }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
             }
-            .padding(.vertical, 20)
-            .padding(.horizontal)
             
+            // 섹션 구분 (굵은 선)
             Divider()
-                .frame(height: 1)
-                .background(Color.white)
-                .padding(.horizontal, 16)
+                .frame(height: 5)
+                .background(Color.white.opacity(0.1))
             
-            // 기타 설정 섹션
-            VStack(alignment: .leading, spacing: 8) {
-                Text("기타")
+            // 앱 정보 섹션
+            VStack(alignment: .leading, spacing: 0) {
+                Text("앱 정보")
                     .font(.custom("NIXGONB-Vb", size: 14))
                     .foregroundColor(.yellow)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
+                
+                // 앱 버전 표시
+                Button {
+                    if let url = URL(string: "https://apps.apple.com/kr/app/id6742595214") {
+                        if UIApplication.shared.canOpenURL(url) {
+                            openURL(url)
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text("버전")
+                            .font(.custom("NIXGONM-Vb", size: 18))
+                            .foregroundColor(.white)
+                        Spacer()
+                        Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
+                            .font(.custom("NIXGONL-Vb", size: 16))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                }
+                
+                Divider()
+                    .background(Color.white.opacity(0.3))
                 
                 // 개발자에게 피드백 보내기
                 Button {
@@ -140,33 +149,43 @@ struct SettingsView: View {
                         openURL(url)
                     }
                 } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("개발자에게 피드백 보내기")
-                            .font(.custom("NIXGONM-Vb", size: 18))
-                            .foregroundColor(.white)
-                        Text("건의사항이나 개선점을 알려주세요")
-                            .font(.custom("NIXGONL-Vb", size: 14))
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("개발자에게 피드백 보내기")
+                                .font(.custom("NIXGONM-Vb", size: 18))
+                                .foregroundColor(.white)
+                            Text("건의사항이나 개선점을 알려주세요")
+                                .font(.custom("NIXGONL-Vb", size: 14))
+                                .foregroundColor(.white)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
                             .foregroundColor(.white)
                     }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
                 }
-            }
-            .padding(.vertical, 20)
-            .padding(.horizontal)
-            
-            Spacer()
-            
-            // 개인정보 처리방침 (하단에 작게 배치)
-            Button {
-                if let url = URL(string: "https://saebyeokjang.github.io/Saebyeok-D/privacy-policy") {
-                    openURL(url)
+                
+                Divider()
+                    .background(Color.white.opacity(0.3))
+                
+                // 개인정보 처리방침
+                Button {
+                    if let url = URL(string: "https://saebyeokjang.github.io/Saebyeok-D/privacy-policy") {
+                        openURL(url)
+                    }
+                } label: {
+                    HStack {
+                        Text("개인정보 처리방침")
+                            .font(.custom("NIXGONM-Vb", size: 18))
+                            .foregroundColor(.white)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
                 }
-            } label: {
-                Text("개인정보 처리방침")
-                    .font(.custom("NIXGONL-Vb", size: 12))
-                    .foregroundColor(.white)
-                    .padding(.bottom, 12)
             }
         }
         .frame(maxHeight: .infinity, alignment: .top)
@@ -207,7 +226,7 @@ struct SettingsView: View {
         do {
             let allEvents: [DDayEvent] = try modelContext.fetch(fetchDescriptor)
             let pastCountdowns = allEvents.filter { event in
-
+                
                 if event.eventType != DDayEventType.countdown { return false }
                 let eventStart = Calendar.current.startOfDay(for: event.targetDate)
                 return eventStart < startOfToday

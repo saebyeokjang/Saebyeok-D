@@ -110,9 +110,8 @@ class SharedDataManager {
             do {
                 var eventsToSave = events
                 
-                // preserveOrder가 true이면 정렬하지 않고 기존 순서 유지
+                // preserveOrder가 false이고 사용자 지정 순서가 아닌 경우에만 정렬
                 if !preserveOrder {
-                    // 앱에서 사용 중인 정렬 방식 가져오기
                     let sortOptionKey = UserDefaults.standard.string(forKey: "sortOption") ?? SortOption.targetDateAscending.rawValue
                     let sortOption = SortOption(rawValue: sortOptionKey) ?? .targetDateAscending
                     
@@ -122,9 +121,8 @@ class SharedDataManager {
                     case .targetDateDescending:
                         eventsToSave.sort { $0.targetDate > $1.targetDate }
                     case .userDefined:
-                        // 사용자 지정 순서 불러오기
+                        // 사용자 지정 순서 유지
                         if let savedOrder = UserDefaults.standard.array(forKey: "userDefinedOrder") as? [String] {
-                            // ID 배열을 이용해 정렬
                             var sortedEvents: [DDayEventData] = []
                             
                             // 저장된 순서에 있는 이벤트 먼저 추가
@@ -134,21 +132,18 @@ class SharedDataManager {
                                 }
                             }
                             
-                            // 나머지 새로 추가된 이벤트는 날짜순으로 뒤에 추가
+                            // 나머지 새로 추가된 이벤트는 뒤에 추가
                             let remainingEvents = eventsToSave.filter { event in
                                 !sortedEvents.contains { $0.id == event.id }
-                            }.sorted { $0.targetDate < $1.targetDate }
+                            }
                             
                             sortedEvents.append(contentsOf: remainingEvents)
                             eventsToSave = sortedEvents
-                        } else {
-                            // 저장된 순서가 없으면 기본적으로 날짜 오름차순
-                            eventsToSave.sort { $0.targetDate < $1.targetDate }
                         }
                     }
                 }
                 
-                // 저장하기 전에 현재 사용 중인 정렬 방식도 같이 저장
+                // 현재 사용 중인 정렬 방식도 저장
                 let currentSortOption = UserDefaults.standard.string(forKey: "sortOption") ?? SortOption.targetDateAscending.rawValue
                 defaults.set(currentSortOption, forKey: "widgetSortOption")
                 
